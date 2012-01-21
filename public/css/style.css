@@ -1,0 +1,30 @@
+
+body, button, input, select, textarea { font-family: sans-serif; color: #222; }
+body, div {
+  margin:0;
+}
+
+html, body {
+  min-height:480px; /* so we can hide the URL bar , without viewport height=device-height*/
+/*  height:100%;*/
+/*  width:100%;*/
+}
+
+
+/* Landscape iPhone */
+@media screen and (min-width: 321px) and (max-width: 480px) {
+  #dygraph {
+/*    height:340px;*/
+  }
+}
+
+#dygraph {
+/*  display:none;*/
+/*width:320px;*/
+  width:100%;
+  height:200px;
+/*
+  width:800px;
+  height:400px;
+*/
+}

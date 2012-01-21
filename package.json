@@ -1,0 +1,10 @@
+{
+  "name":"im-w",
+  "version":"0.0.1",
+  "dependencies":{
+      "cloudfoundry":"0.1.x",
+      "express": "2.5.x",
+      "dnode": "0.9.x",
+      "mongodb":"0.9.x"
+  }
+}
