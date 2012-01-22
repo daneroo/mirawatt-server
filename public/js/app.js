@@ -73,7 +73,7 @@ function drawGraph(){
       if (toremove>0) data.splice(0,toremove);
       data.push([x, randSensor(),randSensor(),randSensor(),randSensor(),randSensor(),randSensor()]);
       globalG.updateOptions( { 'file': data } );
-    }, 500);
+    }, 1000);
 
 }
 
@@ -106,6 +106,18 @@ $(function(){
   DNode.connect({reconnect:5000},function (remote) {
     app.svc=remote; // global!
     //refreshData();
+    var param=43;
+    if (0) setInterval(function(){
+        app.svc.zing(param,function (err,result) {
+            if (err){
+                console.log('remote.zing('+param+') Error: ',err);
+                param=42;
+            } else {
+                console.log('remote.zing('+param+') = ' + result);
+                param=142;            
+            }
+        });
+    },3000);
   });
 });
 
