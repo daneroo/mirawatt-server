@@ -47,6 +47,7 @@ function drawGraph(){
       // drawYGrid: false,
       // axisLabelWidth:100, // doesn't seem to do anything
       yAxisLabelWidth:25,
+      xAxisLabelWidth:55, // default 50 dosn't quite cut it...
 
       showLabelsOnHighlight:false,
       // for touch stuff later...

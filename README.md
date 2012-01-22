@@ -3,7 +3,7 @@
 ## Initial deployment to cloudfoundry
 When it's up, you can find it [here](http://mirawatt.cloudfoundry.com)
 
-    # if not yet created...
+    # if not yet created... (add mongo later)
     vmc push mirawatt
 
     # to push an update
