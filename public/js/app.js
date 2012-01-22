@@ -4,15 +4,19 @@ function hideURLBar(){
   MBP.hideUrlBar();
 }
 
+function randSensor(){
+    return Math.random()*.5+.5;
+}
 var globalG
 function drawGraph(){
-    var numSamples=50;
+    var numSamples=30;
     var data = [];
     var t = new Date();
     for (var i = numSamples-3; i >= 0; i--) {
       var x = new Date(t.getTime() - i * 1000);
-      data.push([x, Math.random()]);
+      data.push([x, randSensor(),randSensor(),randSensor(),randSensor(),randSensor(),randSensor()]);
     }
+
 
     var options = {
       title: 'Average Power over Time',
@@ -20,9 +24,9 @@ function drawGraph(){
       logscale : false,
 
       //showRoller: true, // allows controlling roller
-      // rollPeriod: 30, // ok depends on scale
+      // rollPeriod: 3, // ok depends on scale
 
-      //rollPeriod: 3,
+      // rollPeriod: 2,
       // errorBars: true, requires sigma column
 
       // gridLineColor: '#FF0000',
@@ -31,7 +35,10 @@ function drawGraph(){
 
       axisLabelColor: 'gray',
 
-      colors:['rgb(128,255,128)'],
+      // colors:['rgb(128,255,128)','rgb(128,192,128)','rgb(128,224,128)'],
+      //colors:['hsl(120,100%,50%)','hsl(120,100%,25%)','hsl(120,100%,75%)'],
+      colors:[green(1,.5),green(1,.3),green(1,.4),green(1,.5),green(1,.3),green(1,.4)],
+      
       // axis:{
       //   'weight':{axisLabelWidth:20}
       // },
@@ -47,23 +54,26 @@ function drawGraph(){
       // interactionModel: {},
       //dateWindow: [now-desiredDays*day,now],
       
+      //stepPlot:true,
+      fillGraph:true,
       //drawPoints: true,
       //showRoller: true,
       //valueRange: [0.0, 1.2],
-      labels: ['Time', 'Power (avg)']
+      //labels: ['Time', 'Power (avg)']
+      labels: ['Time', 'sensor 1','sensor 2','sensor 3','sensor 4','sensor 5','sensor 6'],
+      stackedGraph: true
     };
 
     globalG = new Dygraph(document.getElementById("dygraph"), data,options);
 
     setInterval(function() {
-      var x = new Date();  // current time
-      var y = Math.random();
+      var x = new Date();  // current time      
       // truncate - could be more efficient
       var toremove=data.length-(numSamples-1);
       if (toremove>0) data.splice(0,toremove);
-      data.push([x, y]);
+      data.push([x, randSensor(),randSensor(),randSensor(),randSensor(),randSensor(),randSensor()]);
       globalG.updateOptions( { 'file': data } );
-    }, 1000);
+    }, 500);
 
 }
 
