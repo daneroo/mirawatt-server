@@ -28,9 +28,7 @@ var services = {
 jsonrpc_services = require('connect-jsonrpc')(services);
 
 server.post('/jsonrpc', function(req, res, next){
-    // contentType = req.headers['content-type'] || '';
-    // console.log('server hit /jsonrpc',contentType);
-    jsonrpc_services(req,res,next);
+    jsonrpc_services(req,res,next);    
 });
 
 
