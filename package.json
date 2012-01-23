@@ -6,6 +6,7 @@
       "express": "2.5.x",
       "dnode": "0.9.x",
       "connect-jsonrpc":"0.0.x",
+      "request":"2.9.x",
       "mongodb":"0.9.x"
   }
 }

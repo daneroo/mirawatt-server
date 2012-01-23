@@ -22,10 +22,16 @@ Do not use it's build system, will try to minimise with express/connect.
 * crossdomain
 * appcache
 
+## Todo
+
+* [Node version of jQuery.extend](https://github.com/dreamerslab/node.extend) Should I use ?
+
 ## Transport and RPC
 
-* [JSON-rpc client](https://github.com/andyfowler/node-jsonrpc-client)
-* [JSON-rpc connect middleware](https://github.com/visionmedia/connect-jsonrpc) by visionmedia (TJ Holowaychuk)
+* [JSON-RPC Spec](http://jsonrpc.org/spec.html)
+* [JSON-RPC connect middleware](https://github.com/visionmedia/connect-jsonrpc) by visionmedia (TJ Holowaychuk)
+* [JSON-RPC client](https://github.com/andyfowler/node-jsonrpc-client)
+* [JSON-RPC client](https://github.com/Philipp15b/node-jsonrpc2)
 * dnode client transport using xhr-polling ?
 
 ### curl command to invoke jsonrpc service

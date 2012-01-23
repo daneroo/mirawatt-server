@@ -9,6 +9,7 @@ var dnode = require('dnode');
 //var orm = require('./lib/orm');
 // not yet, see im-w for example invocation fro services
 
+// if local ?
 //server.use(express.logger());
 server.use(express.static(__dirname+ '/public'));
 
@@ -27,6 +28,8 @@ var services = {
 jsonrpc_services = require('connect-jsonrpc')(services);
 
 server.post('/jsonrpc', function(req, res, next){
+    // contentType = req.headers['content-type'] || '';
+    // console.log('server hit /jsonrpc',contentType);
     jsonrpc_services(req,res,next);
 });
 
