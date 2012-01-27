@@ -22,6 +22,9 @@ Do not use it's build system, will try to minimise with express/connect.
 * crossdomain
 * appcache
 
+## Timezones
+Found this binding to time.h [node-time](https://github.com/TooTallNate/node-time).
+
 ## Todo
 
 * [Node version of jQuery.extend](https://github.com/dreamerslab/node.extend) Should I use ?
