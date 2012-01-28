@@ -1,8 +1,13 @@
 
 function green(s,l){
-    var rgb=hslToRgb(1/3,s,l)
+    return hsl(1/3,s,l)
+}
+
+function hsl(h,s,l){
+    var rgb=hslToRgb(h,s,l)
     return 'rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
 }
+
 
 // all [0,1]
 function hslToRgb(h, s, l){
@@ -27,7 +32,7 @@ function hslToRgb(h, s, l){
         b = hue2rgb(p, q, h - 1/3);
     }
 
-    return [r * 255, g * 255, b * 255];
+    return [Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255)];
 }
 
 

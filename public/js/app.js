@@ -7,14 +7,54 @@ function hideURLBar(){
 function randSensor(){
     return Math.random()*.5+.5;
 }
+function randModel(x,numSensors){ // x is a Date
+    var row = [x];
+    for (s=0;s<numSensors;s++) row.push(randSensor());
+    return row;
+}
+
+function miraModel(x,numSensors){ // x is a Date
+    var row = [x];
+    // for (s=0;s<numSensors;s++) row.push(randSensor());
+    var s = x.getSeconds()/60;
+    var m = (s<=.25)?Math.sin(s*8*Math.PI):0; m=Math.abs(m);
+    row.push(4*m+1);
+    for (s=1;s<numSensors;s++) row.push(1);
+    return row;
+}
+
+var sourceModel=miraModel;
+
+function hueColorModel(numSensors,h){
+    var colors=[];
+    for (s=0;s<numSensors;s++) colors.push(hsl(h,1,.3+(s%3)/10));
+    for (s=0;s<numSensors;s++) colors.push(hsl(s/numSensors,1,.5));
+    return colors;
+}
+function rainbowColorModel(numSensors){
+    var colors=[];
+    for (s=0;s<numSensors;s++) colors.push(hsl(h,1,.3+(s%3)/10));
+    for (s=0;s<numSensors;s++) colors.push(hsl(s/numSensors,1,.5));
+    console.log('colors',colors);
+    return colors;
+}
+var colorModel=hueColorModel;
+
 var globalG
 function drawGraph(){
-    var numSamples=30;
+    var numSamples=60;
+    var numSensors=10;
     var data = [];
     var t = new Date();
-    for (var i = numSamples-3; i >= 0; i--) {
+    var i,s;
+
+    var labels=['Time'];
+    for (s=0;s<numSensors;s++) labels.push('sensor '+(s+1));
+
+    
+    for (i = numSamples; i >= 0; i--) {
       var x = new Date(t.getTime() - i * 1000);
-      data.push([x, randSensor(),randSensor(),randSensor(),randSensor(),randSensor(),randSensor()]);
+      data.push(sourceModel(x,numSensors));
     }
 
 
@@ -25,19 +65,13 @@ function drawGraph(){
 
       //showRoller: true, // allows controlling roller
       // rollPeriod: 3, // ok depends on scale
-
       // rollPeriod: 2,
       // errorBars: true, requires sigma column
-
       // gridLineColor: '#FF0000',
       // highlightCircleSize: 10,
       strokeWidth: 2,
-
       axisLabelColor: 'gray',
-
-      // colors:['rgb(128,255,128)','rgb(128,192,128)','rgb(128,224,128)'],
-      //colors:['hsl(120,100%,50%)','hsl(120,100%,25%)','hsl(120,100%,75%)'],
-      colors:[green(1,.5),green(1,.3),green(1,.4),green(1,.5),green(1,.3),green(1,.4)],
+      colors:colorModel(numSensors,(x.getSeconds()%60)/60),
       
       // axis:{
       //   'weight':{axisLabelWidth:20}
@@ -61,7 +95,7 @@ function drawGraph(){
       //showRoller: true,
       //valueRange: [0.0, 1.2],
       //labels: ['Time', 'Power (avg)']
-      labels: ['Time', 'sensor 1','sensor 2','sensor 3','sensor 4','sensor 5','sensor 6'],
+      labels: labels,
       stackedGraph: true
     };
 
@@ -72,8 +106,9 @@ function drawGraph(){
       // truncate - could be more efficient
       var toremove=data.length-(numSamples-1);
       if (toremove>0) data.splice(0,toremove);
-      data.push([x, randSensor(),randSensor(),randSensor(),randSensor(),randSensor(),randSensor()]);
-      globalG.updateOptions( { 'file': data } );
+
+      data.push(sourceModel(x,numSensors));
+      globalG.updateOptions( { 'file': data, colors:colorModel(numSensors,(x.getSeconds()%60)/60) } );
     }, 1000);
 
 }
