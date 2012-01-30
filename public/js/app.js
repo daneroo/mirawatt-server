@@ -52,14 +52,16 @@ function drawGraph(){
 
 }
 
-setInterval(function() {
+function updateFromModel(){
     app.currentModel.update(app.currentModel);
     var opts =  $.extend({}, { 
         file: app.currentModel.data ,
         colors: app.currentModel.colors ,
     },app.currentModel.options);
     globalG.updateOptions( opts );
-}, 1000);
+}
+
+setInterval(updateFromModel, 1000);
 
 var app = app || {};
 app.svc=null;
@@ -82,12 +84,21 @@ $(function(){
   $(window).bind('orientationchange', orientationChange);
   orientationChange();
   
+  $('#home ul li a').click(function(){
+      var scopeId = $(this).jqmData('scope-id');
+      if (typeof scopeId !='undefined'){
+          console.log('change scopeId',scopeId);
+          app.currentModel=app.models[scopeId%app.models.length];
+          updateFromModel();
+      }
+  });
   $('#dygraph').click(function(){
       console.log('change scope');
       for (i=0;i<app.models.length;i++){
           if (app.models[i]===app.currentModel){
               console.log('found model:',i);
               app.currentModel=app.models[(i+1)%app.models.length];
+              updateFromModel();
               break;
           }
       }
