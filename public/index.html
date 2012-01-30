@@ -63,12 +63,14 @@
 
     <div data-role="content" data-theme="a">	
       <div id="dygraph"></div>
-      <ul data-role="listview" data-inset="true" >
-        <li><a href="#">Live</a></li>
-        <li><a href="#">Hour</a></li>
-        <li><a href="#">Day</a></li>
-        <li><a href="#">Month</a></li>
-        <li><a href="#">Year</a></li>
+      <!-- data-count-theme="c" is default -->
+      <!-- alternative: no a. : readonly list, no clickable-->
+      <ul data-role="listview" data-count-theme="a" data-inset="true" >
+        <li data-icon="false"><a>Live</a><span class="ui-li-count metric">1234<span class="units">W</span></span></li>
+        <li data-icon="false"><a>Hour</a><span class="ui-li-count metric">2.3<span class="units">kW</span></span></li>
+        <li data-icon="false"><a>Day</a><span class="ui-li-count metric">30<span class="units">kWh/d</span></span></li>
+        <li data-icon="false"><a>Month</a><span class="ui-li-count metric">31<span class="units">kWh/d</span></span></li>
+        <li data-icon="false"><a>Year</a><span class="ui-li-count metric">32<span class="units">kWh/d</span></span></li>
       </ul>
     </div><!-- /content -->
 

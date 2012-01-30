@@ -110,14 +110,17 @@ function drawGraph(){
       if (toremove>0) data.splice(0,toremove);
 
       data.push(sourceModel(x,numSensors));
-      globalG.updateOptions( { 'file': data, colors:colorModel(numSensors,(x.getSeconds()%60)/60) } );
+      var hue = (x.getSeconds()%60)/60;
+      var hue = (app.hue%60)/60;
+      globalG.updateOptions( { 'file': data, colors:colorModel(numSensors,hue) } );
     }, 1000);
 
 }
 
 var app = {
   svc:null,
-  values:null
+  values:null,
+  hue:0
 }
 
 
@@ -138,6 +141,10 @@ $(function(){
   $(window).bind('orientationchange', orientationChange);
   orientationChange();
   
+  $('#dygraph').click(function(){
+      console.log('change scope');
+      app.hue+=10;
+  })
   //anchorZoomSetup();
   drawGraph();
   
