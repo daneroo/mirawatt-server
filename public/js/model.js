@@ -60,7 +60,6 @@ var app = app || {};
             var i=model.numSamples;
             $.each(scope,function(k,v){
                 var x = new Date(t.getTime() - i * 60000);
-                console.log(x.toISOString(),k,v.sum/v.n)
                 model.data.push(splitModel(x,v.sum/v.n,model.numSensors));
                 i--;
             });
@@ -92,7 +91,6 @@ var app = app || {};
             var i=model.numSamples;
             $.each(scope,function(k,v){
                 var x = new Date(t.getTime() - i * 3600000);
-                console.log(x.toISOString(),k,v.sum/v.n)
                 model.data.push(splitModel(x,v.sum/v.n,model.numSensors));
                 i--;
             });
@@ -113,6 +111,8 @@ var app = app || {};
 
     function splitModel(x,v,numSensors){ // x is a Date
         var row = [x];
+        // v is average power - kWh/d :== v*24
+        v = v/1000; // *24 for kWh/d ?
         for (s=0;s<numSensors;s++) row.push(v/numSensors);
         return row;
     }
