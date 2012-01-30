@@ -16,10 +16,12 @@ function randModel(x,numSensors){ // x is a Date
 function miraModel(x,numSensors){ // x is a Date
     var row = [x];
     // for (s=0;s<numSensors;s++) row.push(randSensor());
-    var s = x.getSeconds()/60;
-    var m = (s<=.25)?Math.sin(s*8*Math.PI):0; m=Math.abs(m);
-    row.push(4*m+1);
-    for (s=1;s<numSensors;s++) row.push(1);
+    var sec = x.getSeconds()/60;
+    var m = (sec<=.25)?Math.abs(Math.sin(sec*8*Math.PI)):0;
+    var w = (sec>.25 && sec<=.5)?1-Math.abs(Math.sin(sec*8*Math.PI)):1;
+    m=4*m;w=4*w;
+    row.push(0-m-w,m,w);
+    for (s=3;s<numSensors;s++) row.push((sec>.5)?randSensor():0);
     return row;
 }
 
@@ -43,7 +45,7 @@ var colorModel=hueColorModel;
 var globalG
 function drawGraph(){
     var numSamples=60;
-    var numSensors=10;
+    var numSensors=10; // min 3 if
     var data = [];
     var t = new Date();
     var i,s;
