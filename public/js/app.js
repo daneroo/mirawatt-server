@@ -25,7 +25,7 @@ function miraModel(x,numSensors){ // x is a Date
     return row;
 }
 
-var sourceModel=miraModel;
+var sourceModel=randModel;// miraModel;
 
 function hueColorModel(numSensors,h){
     var colors=[];
