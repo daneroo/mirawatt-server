@@ -91,7 +91,7 @@ var app = app || {};
             });
             var i=model.numSamples;
             $.each(scope,function(k,v){
-                var x = new Date(t.getTime() - i * 60000);
+                var x = new Date(t.getTime() - i * 3600000);
                 console.log(x.toISOString(),k,v.sum/v.n)
                 model.data.push(splitModel(x,v.sum/v.n,model.numSensors));
                 i--;
