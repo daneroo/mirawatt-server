@@ -8,7 +8,7 @@ var globalG
 function drawGraph(){
     var model=app.currentModel;
     var options = {
-      title: 'Power over Time',
+      title: 'Power',
       titleHeight: 24,
       // logscale : false,
 
@@ -53,10 +53,13 @@ function drawGraph(){
 }
 
 function updateFromModel(){
-    app.currentModel.update(app.currentModel);
+    app.models[0].update(app.models[0]); // time series - rand
+    //app.currentModel.update(app.currentModel);
     var opts =  $.extend({}, { 
         file: app.currentModel.data ,
         colors: app.currentModel.colors ,
+        stackedGraph: true,
+        includeZero: false
     },app.currentModel.options);
     globalG.updateOptions( opts );
 }

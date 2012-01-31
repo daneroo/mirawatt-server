@@ -15,7 +15,8 @@ var app = app || {};
         numSamples:60,
         data:[],
         options:{
-            stepPlot:false
+            title: 'Live (kW)',
+            stepPlot:false,
         },
         labels:labels,
         colors:null,
@@ -43,6 +44,7 @@ var app = app || {};
         numSamples:0,
         data:[],
         options:{
+            title: 'Hour (kW)',
             stepPlot:false
         },
         labels:labels,
@@ -60,7 +62,9 @@ var app = app || {};
             var i=model.numSamples;
             $.each(scope,function(k,v){
                 var x = new Date(t.getTime() - i * 60000);
-                model.data.push(splitModel(x,v.sum/v.n,model.numSensors));
+                var value = (v.sum/v.n)/1000; // kW
+                console.log('hour',x.toISOString(),value);
+                model.data.push(splitModel(x,value,model.numSensors));
                 i--;
             });
             model.colors=model.colorModel(model.numSensors,2/3);
@@ -73,6 +77,7 @@ var app = app || {};
         numSamples:0,
         data:[],
         options:{
+            title: 'Day (kWh)',
             stepPlot:true
         },
         labels:labels,
@@ -91,10 +96,90 @@ var app = app || {};
             var i=model.numSamples;
             $.each(scope,function(k,v){
                 var x = new Date(t.getTime() - i * 3600000);
-                model.data.push(splitModel(x,v.sum/v.n,model.numSensors));
+                var value = (v.sum/v.n)/1000; // kW == kWh
+                model.data.push(splitModel(x,value,model.numSensors));
                 i--;
             });
             model.colors=model.colorModel(model.numSensors,3/3);
+        },
+        update:function(model){
+        }
+    });
+    app.models.push({ // Month Scope, made of days
+        numSensors:numSensors,
+        numSamples:0,
+        data:[],
+        options:{
+            title: 'Month (kWh/d)',
+            includeZero: true,
+            stepPlot:true
+        },
+        labels:labels,
+        colors:null,
+        colorModel:hueColorModel,
+        init:function(model){
+            var t = new Date();            
+            t.setMilliseconds(0);
+            t.setSeconds(0);
+            t.setMinutes(0);
+            t.setHours(0);
+            //t.setDate(1);
+            var scopeId=3
+            var feed=feeds()[scopeId];
+            console.log('day',feed);
+            model.numSamples=feed.observations.length;
+            var delta = t.getTime()-Date.parse(feed.stamp);
+            $.each(feed.observations,function(i,v){
+                var value = Math.round(kWhPd(v[1]));
+                var x = new Date(Date.parse(v[0]) - delta);
+                var row = splitModel(x,value,model.numSensors);
+                model.data.push(row);
+            });
+            model.data.reverse();            
+            model.colors=model.colorModel(model.numSensors,3/3);
+        },
+        update:function(model){
+        }
+    });
+    app.models.push({ // Year Scope, made of months
+        numSensors:2,
+        numSamples:0,
+        data:[],
+        options:{
+            title: 'Year over Year (kWh/d)',
+            includeZero: true,
+            stepPlot:true,
+            stackedGraph: false
+        },
+        labels:labels,
+        colors:null,
+        colorModel:hueColorModel,
+        init:function(model){
+            var t = new Date();            
+            t.setMilliseconds(0);
+            //t.setSeconds(0);
+            //t.setMinutes(0);
+            //t.setHours(0);
+            //t.setDate(1);
+            var scopeId=4
+            var feed=feeds()[scopeId];
+            console.log('month',feed);
+            model.numSamples=12;//feed.observations.length/2;
+            var delta = t.getTime()-Date.parse(feed.stamp);
+            for (i=0;i<12;i++){
+                var v=feed.observations[i];
+                var value1 = kWhPd(v[1]);
+                var x = new Date(Date.parse(v[0]));
+                
+                var value2 = null;
+                if (i+12<feed.observations.length){
+                    value2=kWhPd(feed.observations[i+12][1]);
+                }
+                model.data.push([x,value1,value2]);
+                console.log(x.toISOString(),value1,value2);
+            }
+            model.data.reverse();
+            model.colors=model.colorModel(model.numSensors,1/3);
         },
         update:function(model){
         }
@@ -108,12 +193,25 @@ var app = app || {};
     //console.log(app.models[1]);
     app.models[2].init(app.models[2]);
     //console.log(app.models[2]);
+    app.models[3].init(app.models[3]);
+    console.log(app.models[3]);
+    app.models[4].init(app.models[4]);
+    console.log(app.models[4]);
 
+    function kWhPd(watt){
+        return watt*24.0/1000.0
+    }
+    function normalize(weights){
+        var sum=0;
+        for (s=0;s<weights.length;s++) sum+=weights[s];
+        for (s=0;s<weights.length;s++) weights[s]/=sum;
+    }
     function splitModel(x,v,numSensors){ // x is a Date
+        var weights=[];
+        for (s=0;s<numSensors;s++) weights.push(Math.random()+.5);
+        normalize(weights);
         var row = [x];
-        // v is average power - kWh/d :== v*24
-        v = v/1000; // *24 for kWh/d ?
-        for (s=0;s<numSensors;s++) row.push(v/numSensors);
+        for (s=0;s<numSensors;s++) row.push(v*weights[s]);
         return row;
     }
 
