@@ -55,7 +55,6 @@ var app = app || {};
             t.setMilliseconds(0);
             t.setSeconds(0);
             var scope=sampleState().minute;
-            console.log('minute',scope);
             $.each(scope,function(k,v){
                 model.numSamples++;
             });
@@ -63,7 +62,6 @@ var app = app || {};
             $.each(scope,function(k,v){
                 var x = new Date(t.getTime() - i * 60000);
                 var value = (v.sum/v.n)/1000; // kW
-                console.log('hour',x.toISOString(),value);
                 model.data.push(splitModel(x,value,model.numSensors));
                 i--;
             });
@@ -89,7 +87,6 @@ var app = app || {};
             t.setSeconds(0);
             t.setMinutes(0);
             var scope=sampleState().hour;
-            console.log('hour',scope);
             $.each(scope,function(k,v){
                 model.numSamples++;
             });
@@ -126,7 +123,6 @@ var app = app || {};
             //t.setDate(1);
             var scopeId=3
             var feed=feeds()[scopeId];
-            console.log('day',feed);
             model.numSamples=feed.observations.length;
             var delta = t.getTime()-Date.parse(feed.stamp);
             $.each(feed.observations,function(i,v){
@@ -163,7 +159,6 @@ var app = app || {};
             //t.setDate(1);
             var scopeId=4
             var feed=feeds()[scopeId];
-            console.log('month',feed);
             model.numSamples=12;//feed.observations.length/2;
             var delta = t.getTime()-Date.parse(feed.stamp);
             for (i=0;i<12;i++){
@@ -176,7 +171,6 @@ var app = app || {};
                     value2=kWhPd(feed.observations[i+12][1]);
                 }
                 model.data.push([x,value1,value2]);
-                console.log(x.toISOString(),value1,value2);
             }
             model.data.reverse();
             model.colors=model.colorModel(model.numSensors,1/3);
@@ -194,9 +188,9 @@ var app = app || {};
     app.models[2].init(app.models[2]);
     //console.log(app.models[2]);
     app.models[3].init(app.models[3]);
-    console.log(app.models[3]);
+    // console.log(app.models[3]);
     app.models[4].init(app.models[4]);
-    console.log(app.models[4]);
+    // console.log(app.models[4]);
 
     function kWhPd(watt){
         return watt*24.0/1000.0
