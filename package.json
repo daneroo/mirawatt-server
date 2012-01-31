@@ -1,5 +1,5 @@
 {
-  "name":"im-w",
+  "name":"mirawatt-server",
   "version":"0.0.1",
   "dependencies":{
       "cloudfoundry":"0.1.x",
