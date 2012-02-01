@@ -43,7 +43,6 @@ var app = app || {};
             model.data.reverse();            
             model.colors=model.colorModel(model.numSensors,1/3);
             model.timeRange=model.data[model.data.length-1][0]-model.data[0][0];
-            console.log('range',model.timeRange);
         },
         update:function(model){
             var x = new Date();  // current time      
@@ -54,7 +53,6 @@ var app = app || {};
             model.data.push(row);
 
             var timeRange=model.data[model.data.length-1][0]-model.data[0][0];
-            console.log('++range',timeRange);
             
             if (timeRange>model.timeRange){
                 var toremove=1;  //model.data.length-(model.numSamples-1);
