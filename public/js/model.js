@@ -10,33 +10,56 @@ var app = app || {};
     
     app.models=[];
 
-    app.models.push({ // Live - made of seconds
+    app.models.push({ // Live Scope, made of seconds (and tensecs ?)
         numSensors:numSensors,
-        numSamples:60,
+        numSamples:0,
         data:[],
         options:{
             title: 'Live (kW)',
             stepPlot:false,
+            includeZero: true
         },
         labels:labels,
         colors:null,
-        sourceModel:randModel,
         colorModel:hueColorModel,
+        timeRange:0,
         init:function(model){
             var t = new Date();            
-            var i;
-            for (i = model.numSamples; i >= 0; i--) {
-              var x = new Date(t.getTime() - i * 1000);
-              model.data.push(model.sourceModel(x,model.numSensors));
-            }
+            t.setMilliseconds(0);
+            //t.setSeconds(0);
+            //t.setMinutes(0);
+            //t.setHours(0);
+            //t.setDate(1);
+            var scopeId=0;
+            var feed=feeds()[scopeId];
+            model.numSamples=feed.observations.length;
+            var delta = t.getTime()-Date.parse(feed.stamp);
+            $.each(feed.observations,function(i,v){
+                var value = Math.round(v[1])/1000;
+                var x = new Date(Date.parse(v[0]) + delta);
+                var row = splitModel(x,value,model.numSensors);
+                model.data.push(row);
+            });
+            model.data.reverse();            
             model.colors=model.colorModel(model.numSensors,1/3);
+            model.timeRange=model.data[model.data.length-1][0]-model.data[0][0];
+            console.log('range',model.timeRange);
         },
         update:function(model){
             var x = new Date();  // current time      
             // truncate - could be more efficient
-            var toremove=model.data.length-(model.numSamples-1);
-            if (toremove>0) model.data.splice(0,toremove);
-            model.data.push(model.sourceModel(x,model.numSensors));
+            value=randSensor()*2;
+            var row = splitModel(x,value,model.numSensors);
+            
+            model.data.push(row);
+
+            var timeRange=model.data[model.data.length-1][0]-model.data[0][0];
+            console.log('++range',timeRange);
+            
+            if (timeRange>model.timeRange){
+                var toremove=1;  //model.data.length-(model.numSamples-1);
+                if (toremove>0) model.data.splice(0,toremove);
+            }
         }
     });
     app.models.push({ // Hour Scope, made of minutes
@@ -45,7 +68,8 @@ var app = app || {};
         data:[],
         options:{
             title: 'Hour (kW)',
-            stepPlot:false
+            stepPlot:false,
+            includeZero: true
         },
         labels:labels,
         colors:null,
@@ -54,17 +78,20 @@ var app = app || {};
             var t = new Date();            
             t.setMilliseconds(0);
             t.setSeconds(0);
-            var scope=sampleState().minute;
-            $.each(scope,function(k,v){
-                model.numSamples++;
+            //t.setMinutes(0);
+            //t.setHours(0);
+            //t.setDate(1);
+            var scopeId=1
+            var feed=feeds()[scopeId];
+            model.numSamples=feed.observations.length;
+            var delta = t.getTime()-Date.parse(feed.stamp);
+            $.each(feed.observations,function(i,v){
+                var value = Math.round(v[1])/1000;
+                var x = new Date(Date.parse(v[0]) + delta);
+                var row = splitModel(x,value,model.numSensors);
+                model.data.push(row);
             });
-            var i=model.numSamples;
-            $.each(scope,function(k,v){
-                var x = new Date(t.getTime() - i * 60000);
-                var value = (v.sum/v.n)/1000; // kW
-                model.data.push(splitModel(x,value,model.numSensors));
-                i--;
-            });
+            model.data.reverse();            
             model.colors=model.colorModel(model.numSensors,2/3);
         },
         update:function(model){
@@ -76,7 +103,8 @@ var app = app || {};
         data:[],
         options:{
             title: 'Day (kWh)',
-            stepPlot:true
+            stepPlot:true,
+            includeZero: true
         },
         labels:labels,
         colors:null,
@@ -86,17 +114,19 @@ var app = app || {};
             t.setMilliseconds(0);
             t.setSeconds(0);
             t.setMinutes(0);
-            var scope=sampleState().hour;
-            $.each(scope,function(k,v){
-                model.numSamples++;
+            //t.setHours(0);
+            //t.setDate(1);
+            var scopeId=2
+            var feed=feeds()[scopeId];
+            model.numSamples=feed.observations.length;
+            var delta = t.getTime()-Date.parse(feed.stamp);
+            $.each(feed.observations,function(i,v){
+                var value = Math.round(v[1])/1000;
+                var x = new Date(Date.parse(v[0]) + delta);
+                var row = splitModel(x,value,model.numSensors);
+                model.data.push(row);
             });
-            var i=model.numSamples;
-            $.each(scope,function(k,v){
-                var x = new Date(t.getTime() - i * 3600000);
-                var value = (v.sum/v.n)/1000; // kW == kWh
-                model.data.push(splitModel(x,value,model.numSensors));
-                i--;
-            });
+            model.data.reverse();            
             model.colors=model.colorModel(model.numSensors,3/3);
         },
         update:function(model){
@@ -127,7 +157,7 @@ var app = app || {};
             var delta = t.getTime()-Date.parse(feed.stamp);
             $.each(feed.observations,function(i,v){
                 var value = Math.round(kWhPd(v[1]));
-                var x = new Date(Date.parse(v[0]) - delta);
+                var x = new Date(Date.parse(v[0]) + delta);
                 var row = splitModel(x,value,model.numSensors);
                 model.data.push(row);
             });
@@ -211,23 +241,6 @@ var app = app || {};
 
     function randSensor(){
         return Math.random()*.5+.5;
-    }
-    function randModel(x,numSensors){ // x is a Date
-        var row = [x];
-        for (s=0;s<numSensors;s++) row.push(randSensor());
-        return row;
-    }
-
-    function miraModel(x,numSensors){ // x is a Date
-        var row = [x];
-        // for (s=0;s<numSensors;s++) row.push(randSensor());
-        var sec = x.getSeconds()/60;
-        var m = (sec<=.25)?Math.abs(Math.sin(sec*8*Math.PI)):0;
-        var w = (sec>.25 && sec<=.5)?1-Math.abs(Math.sin(sec*8*Math.PI)):1;
-        m=4*m;w=4*w;
-        row.push(0-m-w,m,w);
-        for (s=3;s<numSensors;s++) row.push((sec>.5)?randSensor():0);
-        return row;
     }
 
     function hueColorModel(numSensors,h){
