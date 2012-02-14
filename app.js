@@ -13,6 +13,7 @@ var dnode = require('dnode');
 //server.use(express.logger());
 server.use(express.static(__dirname+ '/public'));
 
+var persistentFeeds={};
 var services = {
     zing : function (n, cb) { // cb(err,result)
       console.log('called server zing',n);
@@ -22,6 +23,13 @@ var services = {
           return;
       }
       cb(null,n * 100);
+    },
+    set: function(userId,feeds,cb){
+        persistentFeeds[userId]=feeds;
+        cb(null,true);
+    },
+    get:function(userId,cb){
+        cb(null,persistentFeeds[userId]);
     }
 };
 
