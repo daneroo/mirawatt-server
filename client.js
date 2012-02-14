@@ -4,7 +4,9 @@ var jsonrpc = require('./lib/jsonrpc-client');
 var request = require('request');
 
 // json-rpc part
-client = jsonrpc('http://localhost:3000/jsonrpc');
+var endpoint='http://localhost:3000/jsonrpc';
+//var endpoint='http://mirawatt.cloudfoundry.com/jsonrpc';
+var client = jsonrpc('http://localhost:3000/jsonrpc');
 var method='zing';
 var params=[44]; //{ n: param }, 
 client.call(method,params,function(err, result) {
@@ -37,7 +39,7 @@ function fetch(cb){
 }
 
 // push, then get
-function pushThenGet(){
+function fetchPushThenGet(){
     var userId='daniel';
     var feeds={stamp:new Date(),value:Math.random()};
     fetch(function(err,feeds){
@@ -65,5 +67,5 @@ function pushThenGet(){
     });
 }
 
-//setTimeout(pushThenGet,1000);
-setInterval(pushThenGet,2000);
+//setTimeout(fetchPushThenGet,1000);
+setInterval(fetchPushThenGet,2000);
