@@ -41,6 +41,7 @@ server.post('/incoming', function(req, res){
   console.log('query',req.query);
   console.log('body',req.body);
 });
+
 jsonrpc_services = require('connect-jsonrpc')(services);
 
 server.post('/jsonrpc', function(req, res, next){
