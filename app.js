@@ -14,6 +14,8 @@ var dnode = require('dnode');
 server.use(express.static(__dirname+ '/public'));
 server.use(express.bodyParser());
 
+var reflectIncoming=[];
+
 var persistentFeeds={};
 var services = {
     zing : function (n, cb) { // cb(err,result)
@@ -34,12 +36,25 @@ var services = {
     }
 };
 
+server.get('/incoming', function(req, res){
+  // res.contentType('json');  
+  res.contentType('text');
+  res.send('Last '+reflectIncoming.length+' POSTS to /incoming\n'+JSON.stringify(reflectIncoming,null,2));
+});
+
 server.post('/incoming', function(req, res){
   // console.log(req);
-  console.log('stamp',new Date().toISOString());
-  console.log('url',req.originalUrl);
-  console.log('query',req.query);
-  console.log('body',req.body);
+  reflectIncoming.unshift({
+    stamp:new Date().toISOString(),
+    url:req.originalUrl,
+    query:req.query,
+    body:req.body
+  });
+  
+  // trim the array
+  var desiredLength=20;
+  reflectIncoming=reflectIncoming.slice(0,desiredLength);
+  res.send('OK');
 });
 
 jsonrpc_services = require('connect-jsonrpc')(services);
