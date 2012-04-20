@@ -1,5 +1,5 @@
 // Config section
-var port = (process.env.VMC_APP_PORT || 3000);
+var port = (process.env.VMC_APP_PORT || 8880);
 var host = (process.env.VCAP_APP_HOST || '0.0.0.0'|| 'localhost');
 
 var express = require('express');
@@ -12,6 +12,7 @@ var dnode = require('dnode');
 // if local ?
 //server.use(express.logger());
 server.use(express.static(__dirname+ '/public'));
+server.use(express.bodyParser());
 
 var persistentFeeds={};
 var services = {
@@ -33,6 +34,13 @@ var services = {
     }
 };
 
+server.post('/incoming', function(req, res){
+  // console.log(req);
+  console.log('stamp',new Date().toISOString());
+  console.log('url',req.originalUrl);
+  console.log('query',req.query);
+  console.log('body',req.body);
+});
 jsonrpc_services = require('connect-jsonrpc')(services);
 
 server.post('/jsonrpc', function(req, res, next){
