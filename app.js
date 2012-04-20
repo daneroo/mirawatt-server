@@ -42,7 +42,7 @@ server.get('/incoming', function(req, res){
   res.send('Last '+reflectIncoming.length+' POSTS to /incoming\n'+JSON.stringify(reflectIncoming,null,2));
 });
 
-server.post('/incoming/:id?', function(req, res){
+server.post('/incoming/:id', function(req, res){
   // console.log(req);
   reflectIncoming.unshift({
     stamp:new Date().toISOString(),
