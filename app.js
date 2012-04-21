@@ -32,7 +32,7 @@ server.get('/feeds', function(req, res){
   res.contentType('text');
   res.send([
     'Feeds By utcId/scopeId',
-    JSON.stringify(reflectIncoming,null,2)
+    JSON.stringify(persistentFeeds,null,2)
   ].join('\n'));
 });
 
