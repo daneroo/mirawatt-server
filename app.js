@@ -28,11 +28,23 @@ var services = {
 };
 
 server.get('/feeds', function(req, res){
-  // res.contentType('json');  
+  // res.contentType('json'); 
+  var feedCopy =  JSON.parse(JSON.stringify(persistentFeeds));
+  for (var uctId in feedCopy) {
+    var feedByScope = feedCopy[uctId];
+    feedByScope.forEach(function(feed,scopeId){
+      if (feed) { // some are null
+        feed.nodes.forEach(function(node,ni){
+          node.obs="|...|="+node.obs.length;
+        });
+      }
+    });
+  }
+
   res.contentType('text');
   res.send([
     'Feeds By utcId/scopeId',
-    JSON.stringify(persistentFeeds,null,2)
+    JSON.stringify(feedCopy,null,2)
   ].join('\n'));
 });
 
@@ -68,7 +80,7 @@ server.post('/incoming/:id',express.bodyParser(), function(req, res){
     var scopeId = Number(feed.scopeId);
     // guard against NaN or out of scopeId range
     if (scopeId>=0 && scopeId<=maxScopeId){
-      persistentFeeds[feed.uctId]=feed;
+      persistentFeeds[feed.uctId][scopeId]=feed;
     }
   }
 });
