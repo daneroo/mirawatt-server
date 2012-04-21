@@ -8,7 +8,7 @@ var dnode = require('dnode');
 server.use(express.static(__dirname+ '/public'));
 
 var reflectIncoming=[];
-var persistentFeeds={};
+var persistentFeeds={};  //byUCT - > array of scopes [0,1,2,3,4,5] : Live,...
 var services = {
     zing : function (n, cb) { // cb(err,result)
       if (n>100){
@@ -27,10 +27,22 @@ var services = {
     }
 };
 
+server.get('/feeds', function(req, res){
+  // res.contentType('json');  
+  res.contentType('text');
+  res.send([
+    'Feeds By utcId/scopeId',
+    JSON.stringify(reflectIncoming,null,2)
+  ].join('\n'));
+});
+
 server.get('/incoming', function(req, res){
   // res.contentType('json');  
   res.contentType('text');
-  res.send('Last '+reflectIncoming.length+' POSTS to /incoming\n'+JSON.stringify(reflectIncoming,null,2));
+  res.send([
+    'Last '+reflectIncoming.length+' POSTS to /incoming',
+    JSON.stringify(reflectIncoming,null,2)
+  ].join('\n'));
 });
 
 // add the bodyparser only for this route.
@@ -43,11 +55,22 @@ server.post('/incoming/:id',express.bodyParser(), function(req, res){
     params:req.params,
     body:req.body
   });
+  res.send('OK');
   
   // trim the array
   var desiredLength=20;
   reflectIncoming=reflectIncoming.slice(0,desiredLength);
-  res.send('OK');
+  
+  var maxScopeId=5;
+  var feed=req.body;
+  if (feed && feed.uctId && feed.scopeId!==undefined) {
+    persistentFeeds[feed.uctId]=persistentFeeds[feed.uctId] || new Array(maxScopeId+1);
+    var scopeId = Number(feed.scopeId);
+    // guard against NaN or out of scopeId range
+    if (scopeId>=0 && scopeId<=maxScopeId){
+      persistentFeeds[feed.uctId]=feed;
+    }
+  }
 });
 
 jsonrpc_services = require('connect-jsonrpc')(services);
