@@ -1,38 +1,29 @@
 // Config section
-var port = (process.env.VMC_APP_PORT || 8880);
+var port = (process.env.VMC_APP_PORT || 3000);
 var host = (process.env.VCAP_APP_HOST || '0.0.0.0'|| 'localhost');
 
 var express = require('express');
 var server = express.createServer();
 var dnode = require('dnode');
-
-//var orm = require('./lib/orm');
-// not yet, see im-w for example invocation fro services
-
-// if local ?
-//server.use(express.logger());
 server.use(express.static(__dirname+ '/public'));
-server.use(express.bodyParser());
 
 var reflectIncoming=[];
-
 var persistentFeeds={};
 var services = {
     zing : function (n, cb) { // cb(err,result)
-      console.log('called server zing',n);
       if (n>100){
           console.log('n is too large');
           cb({code:-1,message:"n is too large"},null);
           return;
       }
-      cb(null,n * 100);
+      if (cb) cb(null,n * 100);
     },
     set: function(userId,feeds,cb){
         persistentFeeds[userId]=feeds;
-        cb(null,true);
+        if (cb) cb(null,true);
     },
     get:function(userId,cb){
-        cb(null,persistentFeeds[userId]);
+        if (cb) cb(null,persistentFeeds[userId]);
     }
 };
 
@@ -42,7 +33,8 @@ server.get('/incoming', function(req, res){
   res.send('Last '+reflectIncoming.length+' POSTS to /incoming\n'+JSON.stringify(reflectIncoming,null,2));
 });
 
-server.post('/incoming/:id', function(req, res){
+// add the bodyparser only for this route.
+server.post('/incoming/:id',express.bodyParser(), function(req, res){
   // console.log(req);
   reflectIncoming.unshift({
     stamp:new Date().toISOString(),
@@ -59,9 +51,8 @@ server.post('/incoming/:id', function(req, res){
 });
 
 jsonrpc_services = require('connect-jsonrpc')(services);
-
 server.post('/jsonrpc', function(req, res, next){
-    jsonrpc_services(req,res,next);    
+  jsonrpc_services(req,res,next);    
 });
 
 
