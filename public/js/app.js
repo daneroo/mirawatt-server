@@ -4,6 +4,7 @@ function hideURLBar(){
   MBP.hideUrlBar();
 }
 
+
 var globalG
 function drawGraph(){
     var model=app.currentModel;
@@ -133,4 +134,25 @@ function info(msg,clear){
   $('#console').append('<div>'+new Date().toISOString()+' '+msg+'</div>');
 }
 
-
+// jsonRPC invocation helper
+app.endpoint='/jsonrpc';
+app.uctId = '"001DC9103902"';
+var jsonRPCId=42; // jsonRPC invocation counter
+function jsonRPC(endpoint,method,paramsArray,successCB){
+  var data = { 
+    jsonrpc: "2.0",
+    method: method,
+    params: paramsArray, 
+    id:(++jsonRPCId) 
+  };
+  $.ajax({
+    type: 'POST',
+    dataType: 'json',
+    contentType: 'application/json',
+    url: endpoint,
+    data: JSON.stringify(data),
+    success: successCB
+  });
+}
+// jsonRPC(app.endpoint,"set",["001DC9103902",[ets.body]],function(err,result){console.log(err,result)})
+//jsonRPC(app.endpoint,"set",["001DC9103902",[ets[0].body,null,null,null]],function(err,result){console.log(err,result)})
