@@ -55,7 +55,7 @@ function drawGraph(){
 
 function updateFromModel(){
     app.models[0].update(app.models[0]); // time series - rand
-    //app.currentModel.update(app.currentModel);
+    //app.currentModel.update(app.currentModel);    
     var opts =  $.extend({}, { 
         file: app.currentModel.data ,
         colors: app.currentModel.colors ,
@@ -65,7 +65,45 @@ function updateFromModel(){
     globalG.updateOptions( opts );
 }
 
-setInterval(updateFromModel, 1000);
+function updateFromUCT(){
+  jsonRPC(app.endpoint,"get",[app.uctId],function(feeds){
+    console.log('jsonrpc',feeds);
+  });
+  app.svc.get(app.uctId,function(err,feeds){
+    console.log('dnode',err,feeds);
+    if (feeds && feeds[0]){
+      var feed=feeds[0];
+      console.log('handling Live',feed.nodes.length);
+      minlen=feed.nodes[0].obs.length;
+      $.each(feed.nodes,function(i,node){
+        console.log('node',i,node.eui,new Date(node.epoch*1000),node.obs.length);
+        if (node.obs.length<minlen) minlen=node.obs.length;
+      });
+      var stamp = new Date(feed.nodes[0].epoch*1000)
+      var nudata=[];
+      for (var i=0;i<minlen;i++){
+        var row = [new Date(stamp.getTime()+i*1000)];
+        $.each(feed.nodes,function(i,node){
+          row.push(Math.abs(node.obs[i]));
+        });
+        nudata.push(row);
+      }
+      // console.log('nudata',nudata);
+      app.models[0].data=nudata;
+    }
+    var opts =  $.extend({}, { 
+        file: app.currentModel.data ,
+        colors: app.currentModel.colors ,
+        stackedGraph: true,
+        includeZero: false
+    },app.currentModel.options);
+    globalG.updateOptions( opts );
+  });
+  
+}
+
+//setInterval(updateFromModel, 1000);
+setInterval(updateFromUCT, 5000);
 
 var app = app || {};
 app.svc=null;
@@ -136,7 +174,7 @@ function info(msg,clear){
 
 // jsonRPC invocation helper
 app.endpoint='/jsonrpc';
-app.uctId = '"001DC9103902"';
+app.uctId = '001DC9103902';
 var jsonRPCId=42; // jsonRPC invocation counter
 function jsonRPC(endpoint,method,paramsArray,successCB){
   var data = { 
