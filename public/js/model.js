@@ -2,7 +2,7 @@
 var app = app || {};
 
 (function(){
-    var numSensors=10; // min 3 if
+    var numSensors=1; // min 3 if
 
     var s;
     var labels=['Time'];

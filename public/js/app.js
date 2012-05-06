@@ -65,32 +65,36 @@ function updateFromModel(){
     globalG.updateOptions( opts );
 }
 
-function updateFromUCT(){
-  jsonRPC(app.endpoint,"get",[app.uctId],function(feeds){
+function updateFromFeeds(){
+  // this is the json fetch - all scopes
+  if(0) jsonRPC(app.endpoint,"get",[app.uctId],function(feeds){
     console.log('jsonrpc',feeds);
   });
+  // this is the dnode fetch - all scopes
   app.svc.get(app.uctId,function(err,feeds){
     console.log('dnode',err,feeds);
-    if (feeds && feeds[0]){
-      var feed=feeds[0];
-      console.log('handling Live',feed.nodes.length);
-      minlen=feed.nodes[0].obs.length;
-      $.each(feed.nodes,function(i,node){
-        console.log('node',i,node.eui,new Date(node.epoch*1000),node.obs.length);
-        if (node.obs.length<minlen) minlen=node.obs.length;
-      });
-      var stamp = new Date(feed.nodes[0].epoch*1000)
-      var nudata=[];
-      for (var i=0;i<minlen;i++){
-        var row = [new Date(stamp.getTime()+i*1000)];
-        $.each(feed.nodes,function(i,node){
-          row.push(Math.abs(node.obs[i]));
-        });
-        nudata.push(row);
-      }
-      // console.log('nudata',nudata);
-      app.models[0].data=nudata;
+    if (err) {
+      console.log('dnode err',err);
+      return;
     }
+    $.each(feeds,function(scopeId,feed){
+      if (!feed) {
+        console.log('skipping feed for scopeId',scopeId);
+        return;
+      }
+      console.log('handling',scopeId,feed.name,feed.obs.length,feed.obs[0]);
+      var nudata=[];
+      $.each(feed.obs,function(i,obs){
+        var stamp = new Date(obs.t)
+        var row = [stamp].concat(obs.v);
+        // console.log('added row',row);
+        nudata.push(row);
+      });
+      nudata.reverse();
+      // console.log('nudata',nudata);
+      app.models[scopeId].data=nudata;
+    });
+    
     var opts =  $.extend({}, { 
         file: app.currentModel.data ,
         colors: app.currentModel.colors ,
@@ -102,8 +106,9 @@ function updateFromUCT(){
   
 }
 
+// this was for synth demo
 //setInterval(updateFromModel, 1000);
-setInterval(updateFromUCT, 5000);
+setInterval(updateFromFeeds, 15000);
 
 var app = app || {};
 app.svc=null;
@@ -174,7 +179,7 @@ function info(msg,clear){
 
 // jsonRPC invocation helper
 app.endpoint='/jsonrpc';
-app.uctId = '001DC9103902';
+app.uctId = 'sample';
 var jsonRPCId=42; // jsonRPC invocation counter
 function jsonRPC(endpoint,method,paramsArray,successCB){
   var data = { 
