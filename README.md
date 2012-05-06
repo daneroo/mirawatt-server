@@ -37,6 +37,10 @@ Found this binding to time.h [node-time](https://github.com/TooTallNate/node-tim
 * [JSON-RPC client](https://github.com/Philipp15b/node-jsonrpc2)
 * dnode client transport using xhr-polling ?
 
+### curl command to straight POST
+
+  curl -X POST -H "Content-Type: application/json" -d @spec.sample.json http://localhost:3000/incoming/daniel
+
 ### curl command to invoke jsonrpc service
 
 curl -H "Content-Type: application/json" -d '{ "jsonrpc": "2.0", "method": "zing", "params": [42], "id":2 }' http://localhost:3000/jsonrpc

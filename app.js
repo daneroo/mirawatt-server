@@ -30,13 +30,13 @@ var services = {
 server.get('/feeds', function(req, res){
   // res.contentType('json'); 
   var feedCopy =  JSON.parse(JSON.stringify(persistentFeeds));
-  for (var uctId in feedCopy) {
-    var feedByScope = feedCopy[uctId];
+  for (var accountId in feedCopy) {
+    var feedByScope = feedCopy[accountId];
     feedByScope.forEach(function(feed,scopeId){
+      console.log(accountId,scopeId,feed);
       if (feed) { // some are null
-        feed.nodes.forEach(function(node,ni){
-          node.obs="|...|="+node.obs.length;
-        });
+        feed.dimension=feed.obs[0].v.length;
+        feed.obs="|...|="+feed.obs.length;
       }
     });
   }
@@ -73,15 +73,21 @@ server.post('/incoming/:id',express.bodyParser(), function(req, res){
   var desiredLength=20;
   reflectIncoming=reflectIncoming.slice(0,desiredLength);
   
-  var maxScopeId=5;
-  var feed=req.body;
-  if (feed && feed.uctId && feed.scopeId!==undefined) {
-    persistentFeeds[feed.uctId]=persistentFeeds[feed.uctId] || new Array(maxScopeId+1);
-    var scopeId = Number(feed.scopeId);
-    // guard against NaN or out of scopeId range
-    if (scopeId>=0 && scopeId<=maxScopeId){
-      persistentFeeds[feed.uctId][scopeId]=feed;
-    }
+  var maxScopeId=4;
+  // should validate 
+  var accountId=req.body.accountId; // || param ? || query
+  var feeds = req.body.feeds;
+  if (Array.isArray(feeds)){
+    feeds.forEach(function(feed,i){
+      if (feed.scopeId!==undefined) {
+        persistentFeeds[accountId]=persistentFeeds[accountId] || new Array(maxScopeId+1);
+        var scopeId = Number(feed.scopeId);
+        // guard against NaN or out of scopeId range
+        if (scopeId>=0 && scopeId<=maxScopeId){
+          persistentFeeds[accountId][scopeId]=feed;
+        }
+      }
+    });
   }
 });
 
