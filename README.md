@@ -39,7 +39,7 @@ Found this binding to time.h [node-time](https://github.com/TooTallNate/node-tim
 
 ### curl command to straight POST
 
-  curl -X POST -H "Content-Type: application/json" -d @spec.sample.json http://localhost:3000/incoming/daniel
+  curl -X POST -H "Content-Type: application/json" -d @../mirawatt-client/example.json http://localhost:3000/incoming/daniel
 
 ### curl command to invoke jsonrpc service
 
