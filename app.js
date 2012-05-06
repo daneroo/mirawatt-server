@@ -7,8 +7,12 @@ var server = express.createServer();
 var dnode = require('dnode');
 server.use(express.static(__dirname+ '/public'));
 
-var reflectIncoming=[];
-var persistentFeeds={};  //byUCT - > array of scopes [0,1,2,3,4,5] : Live,...
+var reflectIncoming=[]; // temporary to debug posts
+var persistentFeeds={};  //by accountId - > array of scopes [0,1,2,3,4] : Live,...
+
+var sample = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, 'spec.sample.json'), 'utf8'));
+console.log(sample);
+persistentFeeds[sample.accountId]=sample.feeds; // make sure the samples has all scopes
 var services = {
     zing : function (n, cb) { // cb(err,result)
       if (n>100){
@@ -43,7 +47,7 @@ server.get('/feeds', function(req, res){
 
   res.contentType('text');
   res.send([
-    'Feeds By utcId/scopeId',
+    'Feeds By accoutId/scopeId',
     JSON.stringify(feedCopy,null,2)
   ].join('\n'));
 });
