@@ -68,14 +68,14 @@ html, body {
   border-bottom-right-radius: .6em;
 
   position: absolute;
-  top:5px;
+  top:0px;
   left:-180px;
   width: 215px;
   z-index:100;
 }
 #home .feedpickerwrapper.showing {
   left:0px;
-  background:red;
+  ZZbackground:red;
 }
 #home .feedpickershow {
   position:absolute;
