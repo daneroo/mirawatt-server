@@ -62,9 +62,19 @@
     </div>--><!-- /header -->
 
     <div data-role="content" data-theme="a">	
+      <div class="feedpickerwrapper">
+        <a class="feedpickershow" href="index.html" data-role="button" data-icon="home" data-iconpos="notext">Delete</a>
+        <div class="feedpicker">
+          <ul data-role="listview" data-theme="b" data-divider-theme="a" data-filter-theme="b" data-filter="true" data-inset="true" >
+            <li data-role="list-divider"><i>Select Feed</i></li>
+            <li data-icon="check"><a href="#">Sample</a></li>
+            <li data-icon="grid"><a href="#">SampleBy2</a></li>
+            <li data-icon="grid"><a href="#">SampleBy4</a></li>
+            <li data-icon="grid"><a href="#">SampleBy8</a></li>
+          </ul>
+        </div>
+      </div>
       <div id="dygraph"></div>
-      <!-- data-count-theme="c" is default -->
-      <!-- alternative: no a. : readonly list, no clickable-->
       <ul data-role="listview" data-count-theme="a" data-inset="true" >
         <li data-icon="false"><a data-scope-id="0">Live</a><span class="ui-li-count metric">1234<span class="units">W</span></span></li>
         <li data-icon="false"><a data-scope-id="1">Hour</a><span class="ui-li-count metric">2.3<span class="units">kW</span></span></li>

@@ -58,3 +58,31 @@ html, body {
   color:gray;
   text-align:left;
 }
+
+#home .feedpickerwrapper {
+  -webkit-border-top-right-radius: .6em;
+  -webkit-border-bottom-right-radius: .6em;
+  -moz-border-radius-topright: .6em;
+  -moz-border-radius-bottomright: .6em;
+  border-top-right-radius: .6em;
+  border-bottom-right-radius: .6em;
+
+  position: absolute;
+  top:5px;
+  left:-180px;
+  width: 215px;
+  z-index:100;
+}
+#home .feedpickerwrapper.showing {
+  left:0px;
+  background:red;
+}
+#home .feedpickershow {
+  position:absolute;
+  right:-0px;
+}
+#home .feedpicker {
+  margin:20px;
+  margin-right:40px;
+  margin-left:15px;
+}

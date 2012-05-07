@@ -150,7 +150,11 @@ $(function(){
           }
       }
       
-  })
+  });
+  
+  $('.feedpickershow').click(function(){
+    $('#home .feedpickerwrapper').toggleClass('showing');
+  });  
   //anchorZoomSetup();
   drawGraph();
   
