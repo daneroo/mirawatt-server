@@ -54,7 +54,7 @@ function drawGraph(){
 }
 
 function updateFromModel(){
-    app.models[0].update(app.models[0]); // time series - rand
+    //app.models[0].update(app.models[0]); // time series - rand
     //app.currentModel.update(app.currentModel);    
     var opts =  $.extend({}, { 
         file: app.currentModel.data ,
@@ -82,12 +82,19 @@ function updateFromFeeds(){
         console.log('skipping feed for scopeId',scopeId);
         return;
       }
-      console.log('handling',scopeId,feed.name,feed.obs.length,feed.obs[0]);
+      
+      // scale denoms
+      var kw=1000,kwh=1000,kwhpd=1000/24;
+      var scale = [kw,kw,kwh,kwhpd,kwhpd][scopeId];
+      
+      console.log('handling',scopeId,feed.name,feed.obs.length,'scale',scale,feed.obs[0]);
       var nudata=[];
       $.each(feed.obs,function(i,obs){
-        var stamp = new Date(obs.t)
-        var row = [stamp].concat(obs.v);
-        // console.log('added row',row);
+        var stamp = new Date(obs.t);//.toISOString().substring(0,19);
+        var row = [stamp];
+        $.each(obs.v,function(s,v){
+          row.push(v/scale);
+        })
         nudata.push(row);
       });
       nudata.reverse();
@@ -108,7 +115,7 @@ function updateFromFeeds(){
 
 // this was for synth demo
 //setInterval(updateFromModel, 1000);
-setInterval(updateFromFeeds, 15000);
+setInterval(updateFromFeeds, 5000);
 
 var app = app || {};
 app.svc=null;
