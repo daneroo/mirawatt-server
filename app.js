@@ -34,7 +34,9 @@ var services = {
 server.get('/feeds', function(req, res){
   // res.contentType('json'); 
   var feedCopy =  JSON.parse(JSON.stringify(persistentFeeds));
-  for (var accountId in feedCopy) {
+
+  // commented: remove actual data for screen
+  if (0) for (var accountId in feedCopy) {
     var feedByScope = feedCopy[accountId];
     feedByScope.forEach(function(feed,scopeId){
       console.log(accountId,scopeId,feed);
