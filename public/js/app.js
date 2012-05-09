@@ -67,11 +67,11 @@ function updateFromModel(){
 
 function updateFromFeeds(){
   // this is the json fetch - all scopes
-  if(0) jsonRPC(app.endpoint,"get",[app.uctId],function(feeds){
+  if(0) jsonRPC(app.endpoint,"get",[app.accountId],function(feeds){
     console.log('jsonrpc',feeds);
   });
   // this is the dnode fetch - all scopes
-  app.svc.get(app.uctId,function(err,feeds){
+  app.svc.get(app.accountId,function(err,feeds){
     console.log('dnode',err,feeds);
     if (err) {
       console.log('dnode err',err);
@@ -115,11 +115,14 @@ function updateFromFeeds(){
 
 // this was for synth demo
 //setInterval(updateFromModel, 1000);
-setInterval(updateFromFeeds, 5000);
+setInterval(updateFromFeeds, 1000);
 
 var app = app || {};
 app.svc=null;
 app.currentModel = app.models[0];
+app.endpoint='/jsonrpc';
+app.accountId = 'sample';
+app.accountId = 'daniel';
 
 $(function(){
   hideURLBar();
@@ -189,8 +192,6 @@ function info(msg,clear){
 }
 
 // jsonRPC invocation helper
-app.endpoint='/jsonrpc';
-app.uctId = 'sample';
 var jsonRPCId=42; // jsonRPC invocation counter
 function jsonRPC(endpoint,method,paramsArray,successCB){
   var data = { 

@@ -23,8 +23,10 @@ var services = {
       if (cb) cb(null,n * 100);
     },
     set: function(userId,feeds,cb){
-        persistentFeeds[userId]=feeds;
-        if (cb) cb(null,true);
+      // validate
+      console.log('set',userId,Object.keys(feeds.feeds));
+      persistentFeeds[userId]=feeds.feeds;
+      if (cb) cb(null,true);
     },
     get:function(userId,cb){
         if (cb) cb(null,persistentFeeds[userId]);
