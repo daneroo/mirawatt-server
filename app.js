@@ -5,6 +5,7 @@ var host = (process.env.VCAP_APP_HOST || '0.0.0.0'|| 'localhost');
 var express = require('express');
 var server = express.createServer();
 var dnode = require('dnode');
+var _ = require('underscore');
 server.use(express.static(__dirname+ '/public'));
 
 var reflectIncoming=[]; // temporary to debug posts
@@ -24,7 +25,18 @@ var services = {
     },
     set: function(userId,feeds,cb){
       // validate
-      console.log('set',userId,Object.keys(feeds.feeds));
+      function track(feeds){
+        var dimension=0;
+        var names=[];
+        var stamp='--';
+        try {
+          stamp=feeds.feeds[0].obs[0].t;
+          dimension = feeds.feeds[0].obs[0].v.length;        
+          names=_.map(feeds.feeds, function(feed){ return feed.name; });
+        } catch (e){}
+        console.log('set',stamp,userId,'dim',dimension,names.join(','));
+      }
+      track(feeds);
       persistentFeeds[userId]=feeds.feeds;
       if (cb) cb(null,true);
     },

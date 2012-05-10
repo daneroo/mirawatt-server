@@ -100,9 +100,11 @@ function updateFromFeeds(){
       nudata.reverse();
       // console.log('nudata',nudata);
       app.models[scopeId].data=nudata;
+      app.models[scopeId].labels=['Time'].concat(feed.sensorId);
     });
     
     var opts =  $.extend({}, { 
+        labels:app.currentModel.labels,
         file: app.currentModel.data ,
         colors: app.currentModel.colors ,
         stackedGraph: true,
@@ -123,6 +125,8 @@ app.currentModel = app.models[0];
 app.endpoint='/jsonrpc';
 app.accountId = 'sample';
 app.accountId = 'daniel';
+app.accountId = 'danielBy2';
+app.accountId = 'danielBy8';
 
 $(function(){
   hideURLBar();
