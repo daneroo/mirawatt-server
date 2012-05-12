@@ -69,20 +69,26 @@ html, body {
 
   position: absolute;
   top:0px;
-  left:-180px;
-  width: 215px;
+  left:-160px;
+  width: 200px;
   z-index:100;
 }
 #home .feedpickerwrapper.showing {
   left:0px;
-  ZZbackground:red;
+  background: #777;
+  background: rgba(127, 127, 127, 0.5);
 }
 #home .feedpickershow {
-  position:absolute;
+  position:relative;
   right:-0px;
 }
+#home .feedpickerwrapper.showing .feedpickershow {
+  left:-0px;
+}
 #home .feedpicker {
+  display:none;
   margin:20px;
-  margin-right:40px;
-  margin-left:15px;
+}
+#home .feedpickerwrapper.showing .feedpicker {
+  display:block;
 }

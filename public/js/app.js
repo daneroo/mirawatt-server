@@ -72,7 +72,7 @@ function updateFromFeeds(){
   });
   // this is the dnode fetch - all scopes
   app.svc.get(app.accountId,function(err,feeds){
-    console.log('dnode',err,feeds);
+    // console.log('dnode',err,feeds);
     if (err) {
       console.log('dnode err',err);
       return;
@@ -87,7 +87,7 @@ function updateFromFeeds(){
       var kw=1000,kwh=1000,kwhpd=1000/24;
       var scale = [kw,kw,kwh,kwhpd,kwhpd][scopeId];
       
-      console.log('handling',scopeId,feed.name,feed.obs.length,'scale',scale,feed.obs[0]);
+      // console.log('handling',scopeId,feed.name,feed.obs.length,'scale',scale,feed.obs[0]);
       var nudata=[];
       $.each(feed.obs,function(i,obs){
         var stamp = new Date(obs.t);//.toISOString().substring(0,19);
@@ -124,8 +124,9 @@ app.svc=null;
 app.currentModel = app.models[0];
 app.endpoint='/jsonrpc';
 app.accountId = 'sample';
-app.accountId = 'daniel';
-app.accountId = 'danielBy2';
+app.accountId = 'sampleBy2';
+// app.accountId = 'daniel';
+// app.accountId = 'danielBy2';
 app.accountId = 'danielBy8';
 
 $(function(){
@@ -167,6 +168,18 @@ $(function(){
   });
   
   $('.feedpickershow').click(function(){
+    $('#home .feedpickerwrapper').toggleClass('showing');
+  });  
+  $('.feedpicker li a').click(function(){
+    app.accountId=$(this).data('feed');
+    console.log($('.feedpicker li'));
+    // $('.feedpicker li').attr('data-icon','home');
+    $('.feedpicker li span.ui-icon').removeClass('ui-icon-check')
+    $('.feedpicker li span.ui-icon').addClass('ui-icon-grid')
+    $(this).closest('li').find('span.ui-icon').removeClass('ui-icon-grid')
+    $(this).closest('li').find('span.ui-icon').addClass('ui-icon-check')
+    // $('.feedpicker ul').listview('refresh');
+    // hide the picker
     $('#home .feedpickerwrapper').toggleClass('showing');
   });  
   //anchorZoomSetup();
