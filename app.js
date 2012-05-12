@@ -11,9 +11,12 @@ server.use(express.static(__dirname+ '/public'));
 var reflectIncoming=[]; // temporary to debug posts
 var persistentFeeds={};  //by accountId - > array of scopes [0,1,2,3,4] : Live,...
 
-var sample = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, 'spec.sample.json'), 'utf8'));
-console.log(sample);
-persistentFeeds[sample.accountId]=sample.feeds; // make sure the samples has all scopes
+['spec.sample.json','spec.sampleBy2.json'].forEach(function(sampleDataFileName){
+  var sample = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, sampleDataFileName), 'utf8'));
+  console.log(sample);
+  persistentFeeds[sample.accountId]=sample.feeds; // make sure the samples has all scopes
+  
+});
 var services = {
     zing : function (n, cb) { // cb(err,result)
       if (n>100){
