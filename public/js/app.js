@@ -137,7 +137,7 @@ function refreshAccounts(){
 }
 // this was for synth demo
 //setInterval(updateFromModel, 1000);
-setInterval(updateFromFeeds, 1000);
+setInterval(updateFromFeeds, 3000);
 
 var app = app || {};
 app.svc=null;
