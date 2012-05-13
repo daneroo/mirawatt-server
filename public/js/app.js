@@ -191,7 +191,7 @@ $(function(){
   });  
   $('.feedpicker li a').live('click',function(){
     app.accountId=$(this).data('feed');
-    console.log($('.feedpicker li'));
+    // console.log($('.feedpicker li'));
     // $('.feedpicker li').attr('data-icon','home');
     $('.feedpicker li span.ui-icon').removeClass('ui-icon-check')
     $('.feedpicker li span.ui-icon').addClass('ui-icon-grid')
