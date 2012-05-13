@@ -115,6 +115,24 @@ function updateFromFeeds(){
   
 }
 
+function refreshAccounts(){
+    // this is the dnode fetch - all scopes
+    console.log('refresh accounts');
+    app.svc.accounts(function(err,accountIds){
+        if (err) {
+          console.log('dnode err',err);
+          return;
+        }
+        console.log('accounts',accountIds);
+        var $feedList = $('.feedpicker ul');
+        $feedList.html(''); // empty the list
+        $.each(accountIds,function(i,accountId){
+            var icon = (app.accountId===accountId)?'check':'grid';
+            $feedList.append('<li data-icon="'+icon+'"><a data-feed="'+accountId+'" href="#">'+accountId+'</a></li>');
+        });
+        $feedList.listview('refresh');        
+    });
+}
 // this was for synth demo
 //setInterval(updateFromModel, 1000);
 setInterval(updateFromFeeds, 1000);
@@ -168,9 +186,10 @@ $(function(){
   });
   
   $('.feedpickershow').click(function(){
+    refreshAccounts();
     $('#home .feedpickerwrapper').toggleClass('showing');
   });  
-  $('.feedpicker li a').click(function(){
+  $('.feedpicker li a').live('click',function(){
     app.accountId=$(this).data('feed');
     console.log($('.feedpicker li'));
     // $('.feedpicker li').attr('data-icon','home');

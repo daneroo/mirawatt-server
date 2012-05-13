@@ -26,6 +26,11 @@ var services = {
       }
       if (cb) cb(null,n * 100);
     },
+    accounts: function(cb){
+        var sortedAccounts = Object.keys(persistentFeeds);
+        sortedAccounts.sort();
+        if (cb) cb(null,sortedAccounts);
+    },
     set: function(userId,feeds,cb){
       // validate
       function track(feeds){
@@ -50,25 +55,8 @@ var services = {
 
 server.get('/feeds', function(req, res){
   // res.contentType('json'); 
-  var feedCopy =  JSON.parse(JSON.stringify(persistentFeeds));
-
-  // commented: remove actual data for screen
-  if (0) for (var accountId in feedCopy) {
-    var feedByScope = feedCopy[accountId];
-    feedByScope.forEach(function(feed,scopeId){
-      console.log(accountId,scopeId,feed);
-      if (feed) { // some are null
-        feed.dimension=feed.obs[0].v.length;
-        feed.obs="|...|="+feed.obs.length;
-      }
-    });
-  }
-
   res.contentType('text');
-  res.send([
-    'Feeds By accoutId/scopeId',
-    JSON.stringify(feedCopy,null,2)
-  ].join('\n'));
+  res.send(JSON.stringify(persistentFeeds,null,2));
 });
 
 server.get('/incoming', function(req, res){
