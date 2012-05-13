@@ -72,7 +72,7 @@ function updateFromFeeds(){
   });
   // this is the dnode fetch - all scopes
   app.svc.get(app.accountId,function(err,feeds){
-    // console.log('dnode',err,feeds);
+    // console.log('dnode',app.accountId,err,feeds);
     if (err) {
       console.log('dnode err',err);
       return;
@@ -117,13 +117,15 @@ function updateFromFeeds(){
 
 function refreshAccounts(){
     // this is the dnode fetch - all scopes
-    console.log('refresh accounts');
     app.svc.accounts(function(err,accountIds){
+        // console.log('accounts',accountIds);
+        if (app.accountId==null && accountIds && accountIds.length>0){
+            app.accountId=accountIds[0];
+        }
         if (err) {
           console.log('dnode err',err);
           return;
         }
-        console.log('accounts',accountIds);
         var $feedList = $('.feedpicker ul');
         $feedList.html(''); // empty the list
         $.each(accountIds,function(i,accountId){
@@ -141,11 +143,9 @@ var app = app || {};
 app.svc=null;
 app.currentModel = app.models[0];
 app.endpoint='/jsonrpc';
-app.accountId = 'sample';
-app.accountId = 'sampleBy2';
+// app.accountId is set on first refreshAccounts
+// app.accountId = 'sample';
 // app.accountId = 'daniel';
-// app.accountId = 'danielBy2';
-app.accountId = 'danielBy8';
 
 $(function(){
   hideURLBar();
@@ -207,18 +207,7 @@ $(function(){
   DNode.connect({reconnect:5000},function (remote) {
     app.svc=remote; // global!
     //refreshData();
-    var param=43;
-    if (0) setInterval(function(){
-        app.svc.zing(param,function (err,result) {
-            if (err){
-                console.log('remote.zing('+param+') Error: ',err);
-                param=42;
-            } else {
-                console.log('remote.zing('+param+') = ' + result);
-                param=142;            
-            }
-        });
-    },3000);
+    refreshAccounts();
   });
 });
 

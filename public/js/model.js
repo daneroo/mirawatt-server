@@ -2,7 +2,7 @@
 var app = app || {};
 
 (function(){
-    var numSensors=1; // min 3 if
+    var numSensors=8; // min 3 if
 
     var s;
     var labels=['Time'];
@@ -166,7 +166,7 @@ var app = app || {};
         }
     });
     app.models.push({ // Year Scope, made of months
-        numSensors:2,
+        numSensors:numSensors,
         numSamples:0,
         data:[],
         options:{
@@ -201,7 +201,7 @@ var app = app || {};
                 model.data.push([x,value1,value2]);
             }
             model.data.reverse();
-            model.colors=model.colorModel(model.numSensors,1/3);
+            model.colors=model.colorModel(model.numSensors,2/3);
         },
         update:function(model){
         }

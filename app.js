@@ -13,7 +13,7 @@ var persistentFeeds={};  //by accountId - > array of scopes [0,1,2,3,4] : Live,.
 
 ['spec.sample.json','spec.sampleBy2.json'].forEach(function(sampleDataFileName){
   var sample = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, sampleDataFileName), 'utf8'));
-  console.log(sample);
+  // console.log(sample);
   persistentFeeds[sample.accountId]=sample.feeds; // make sure the samples has all scopes
   
 });
@@ -42,7 +42,7 @@ var services = {
           dimension = feeds.feeds[0].obs[0].v.length;        
           names=_.map(feeds.feeds, function(feed){ return feed.name; });
         } catch (e){}
-        console.log('set',stamp,userId,'dim',dimension,names.join(','));
+        // console.log('set',stamp,userId,'dim',dimension,names.join(','));
       }
       track(feeds);
       persistentFeeds[userId]=feeds.feeds;
