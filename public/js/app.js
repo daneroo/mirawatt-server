@@ -7,7 +7,7 @@ function hideURLBar(){
 
 var globalG
 function drawGraph(){
-    var model=app.currentModel;
+    var model=app.models[app.currentScope];
     var options = {
       title: 'Power',
       titleHeight: 24,
@@ -54,18 +54,27 @@ function drawGraph(){
 }
 
 function updateFromModel(){
-    //app.models[0].update(app.models[0]); // time series - rand
-    //app.currentModel.update(app.currentModel);    
-    var opts =  $.extend({}, { 
-        file: app.currentModel.data ,
-        colors: app.currentModel.colors ,
-        stackedGraph: true,
-        includeZero: false
-    },app.currentModel.options);
+  var model=app.models[app.currentScope];
+  var opts =  $.extend({}, { 
+    file: model.data ,
+    colors: model.colors ,
+    stackedGraph: true,
+    includeZero: false
+    },model.options);
     globalG.updateOptions( opts );
-}
+  }
 
+var lastFetch=null; // till we get push from dnode (reset fomr scope change)
 function updateFromFeeds(){
+  // till we get push from dnode,
+  // if scope is not Live, punt on update < 5,10 seconds
+  if (lastFetch){
+    var delay=+new Date()-lastFetch;
+    var minDelayForScope=[900,5000,10000,10000,10000][app.currentScope];
+    if (delay<minDelayForScope) return;
+  }
+  lastFetch=+new Date();
+
   // this is the json fetch - all scopes
   if(0) jsonRPC(app.endpoint,"get",[app.accountId],function(feeds){
     console.log('jsonrpc',feeds);
@@ -114,13 +123,14 @@ function updateFromFeeds(){
       app.models[scopeId].labels=['Time'].concat(feed.sensorId);
     });
     
+    var model=app.models[app.currentScope];
     var opts =  $.extend({}, { 
-        labels:app.currentModel.labels,
-        file: app.currentModel.data ,
-        colors: app.currentModel.colors ,
+        labels:model.labels,
+        file: model.data ,
+        colors: model.colors ,
         stackedGraph: true,
         includeZero: false
-    },app.currentModel.options);
+    },model.options);
     globalG.updateOptions( opts );
   });
   
@@ -148,15 +158,14 @@ function refreshAccounts(){
 }
 // this was for synth demo
 //setInterval(updateFromModel, 1000);
-setInterval(updateFromFeeds, 3000);
+setInterval(updateFromFeeds, 1000);
 
 var app = app || {};
 app.svc=null;
-app.currentModel = app.models[0];
-app.endpoint='/jsonrpc';
+app.currentScope=2;
 // app.accountId is set on first refreshAccounts
-// app.accountId = 'sample';
-// app.accountId = 'daniel';
+app.accountId = null;// 'sample';
+app.endpoint='/jsonrpc';
 
 $(function(){
   hideURLBar();
@@ -175,25 +184,20 @@ $(function(){
   $(window).bind('orientationchange', orientationChange);
   orientationChange();
   
-  $('#home ul li').click(function(){
+  $('#home ul.scopepicker li').click(function(){
       var scopeId = $(this).jqmData('scope-id');
       if (typeof scopeId !='undefined'){
           console.log('change scopeId',scopeId);
-          app.currentModel=app.models[scopeId%app.models.length];
+          app.currentScope=scopeId%app.models.length;
+          lastFetch=null; // till we get push from dnode
           updateFromModel();
       }
   });
   $('#dygraph').click(function(){
-      console.log('change scope');
-      for (i=0;i<app.models.length;i++){
-          if (app.models[i]===app.currentModel){
-              console.log('found model:',i);
-              app.currentModel=app.models[(i+1)%app.models.length];
-              updateFromModel();
-              break;
-          }
-      }
-      
+      app.currentScope=(app.currentScope+1)%app.models.length;
+      lastFetch=null; // till we get push from dnode
+      console.log('change scope',app.currentScope);
+      updateFromModel();
   });
   
   $('.feedpickershow').click(function(){
