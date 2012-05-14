@@ -46,18 +46,18 @@ html, body {
     text-shadow: 0 -1px 1px #000000;
 }
 */
-#home ul li span.metric {
-  width:6em;  
+#home ul li span.ui-li-count {
+  width:6em;
   text-align:right;
-  /*  color:white; or green*/
-}  
-#home ul li span.metric span.units {
+}
+#home ul li span.units {
   width:3em;
   padding-left:.3em;
   display:inline-block;
   color:gray;
   text-align:left;
 }
+
 
 #home .feedpickerwrapper {
   -webkit-border-top-right-radius: .6em;

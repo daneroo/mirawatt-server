@@ -89,16 +89,27 @@ function updateFromFeeds(){
       
       // console.log('handling',scopeId,feed.name,feed.obs.length,'scale',scale,feed.obs[0]);
       var nudata=[];
+      var avgOrLast=0;
       $.each(feed.obs,function(i,obs){
         var stamp = new Date(obs.t);//.toISOString().substring(0,19);
         var row = [stamp];
+        var sum=0;
         $.each(obs.v,function(s,v){
-          row.push(v/scale);
-        })
+          v=v/scale;
+          sum+=v;
+          row.push(v);
+        });
+        avgOrLast+= ((scopeId>0 || i==0)?1:0) * sum;
         nudata.push(row);
       });
       nudata.reverse();
+      
+      if (scopeId>0) avgOrLast/=feed.obs.length;
+      
+      if (scopeId===0) avgOrLast*=1000; // W instead o kW
+      avgOrLast = avgOrLast.toFixed([0,2,2,1,1][scopeId]);
       // console.log('nudata',nudata);
+      $('.scopepicker li[data-scope-id='+scopeId+'] span .metric').text(avgOrLast);
       app.models[scopeId].data=nudata;
       app.models[scopeId].labels=['Time'].concat(feed.sensorId);
     });
@@ -164,7 +175,7 @@ $(function(){
   $(window).bind('orientationchange', orientationChange);
   orientationChange();
   
-  $('#home ul li a').click(function(){
+  $('#home ul li').click(function(){
       var scopeId = $(this).jqmData('scope-id');
       if (typeof scopeId !='undefined'){
           console.log('change scopeId',scopeId);
