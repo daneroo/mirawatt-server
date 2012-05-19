@@ -219,7 +219,7 @@ $(function(){
   //anchorZoomSetup();
   drawGraph();
   
-  DNode.connect({reconnect:5000},function (remote) {
+  DNode.connect({reconnect:3000},function (remote) {
     app.svc=remote; // global!
     //refreshData();
     refreshAccounts();

@@ -30,34 +30,17 @@ var app = app || {};
             //t.setMinutes(0);
             //t.setHours(0);
             //t.setDate(1);
-            var scopeId=0;
-            var feed=feeds()[scopeId];
-            model.numSamples=feed.observations.length;
-            var delta = t.getTime()-Date.parse(feed.stamp);
-            $.each(feed.observations,function(i,v){
-                var value = Math.round(v[1])/1000;
-                var x = new Date(Date.parse(v[0]) + delta);
+            // var scopeId=0;
+            $.each([5,4,3,2,1,0],function(i,v){
+                var value = 1000/1000;
+                var x = new Date(t-v*60*1000);
                 var row = splitModel(x,value,model.numSensors);
                 model.data.push(row);
             });
-            model.data.reverse();            
+            model.numSamples=model.data.length;
             model.colors=model.colorModel(model.numSensors,1/3);
-            model.timeRange=model.data[model.data.length-1][0]-model.data[0][0];
         },
         update:function(model){
-            var x = new Date();  // current time      
-            // truncate - could be more efficient
-            value=randSensor()*2;
-            var row = splitModel(x,value,model.numSensors);
-            
-            model.data.push(row);
-
-            var timeRange=model.data[model.data.length-1][0]-model.data[0][0];
-            
-            if (timeRange>model.timeRange){
-                var toremove=1;  //model.data.length-(model.numSamples-1);
-                if (toremove>0) model.data.splice(0,toremove);
-            }
         }
     });
     app.models.push({ // Hour Scope, made of minutes
@@ -79,17 +62,13 @@ var app = app || {};
             //t.setMinutes(0);
             //t.setHours(0);
             //t.setDate(1);
-            var scopeId=1
-            var feed=feeds()[scopeId];
-            model.numSamples=feed.observations.length;
-            var delta = t.getTime()-Date.parse(feed.stamp);
-            $.each(feed.observations,function(i,v){
-                var value = Math.round(v[1])/1000;
-                var x = new Date(Date.parse(v[0]) + delta);
+            $.each([4,3,2,1,0],function(i,v){
+                var value = 1000/1000;
+                var x = new Date(t-v*15*60*1000);
                 var row = splitModel(x,value,model.numSensors);
                 model.data.push(row);
             });
-            model.data.reverse();            
+            model.numSamples=model.data.length;
             model.colors=model.colorModel(model.numSensors,2/3);
         },
         update:function(model){
@@ -114,17 +93,13 @@ var app = app || {};
             t.setMinutes(0);
             //t.setHours(0);
             //t.setDate(1);
-            var scopeId=2
-            var feed=feeds()[scopeId];
-            model.numSamples=feed.observations.length;
-            var delta = t.getTime()-Date.parse(feed.stamp);
-            $.each(feed.observations,function(i,v){
-                var value = Math.round(v[1])/1000;
-                var x = new Date(Date.parse(v[0]) + delta);
+            $.each([6,5,4,3,2,1,0],function(i,v){
+                var value = 1000/1000;
+                var x = new Date(t-v*4*60*60*1000);
                 var row = splitModel(x,value,model.numSensors);
                 model.data.push(row);
             });
-            model.data.reverse();            
+            model.numSamples=model.data.length;
             model.colors=model.colorModel(model.numSensors,3/3);
         },
         update:function(model){
@@ -148,18 +123,13 @@ var app = app || {};
             t.setSeconds(0);
             t.setMinutes(0);
             t.setHours(0);
-            //t.setDate(1);
-            var scopeId=3
-            var feed=feeds()[scopeId];
-            model.numSamples=feed.observations.length;
-            var delta = t.getTime()-Date.parse(feed.stamp);
-            $.each(feed.observations,function(i,v){
-                var value = Math.round(kWhPd(v[1]));
-                var x = new Date(Date.parse(v[0]) + delta);
+            $.each([6,5,4,3,2,1,0],function(i,v){
+                var value = kWhPd(1000);
+                var x = new Date(t-v*5*24*60*60*1000);
                 var row = splitModel(x,value,model.numSensors);
                 model.data.push(row);
             });
-            model.data.reverse();            
+            model.numSamples=model.data.length;
             model.colors=model.colorModel(model.numSensors,3/3);
         },
         update:function(model){
@@ -173,7 +143,7 @@ var app = app || {};
             title: 'Year over Year (kWh/d)',
             includeZero: true,
             stepPlot:true,
-            stackedGraph: false
+            stackedGraph: true
         },
         labels:labels,
         colors:null,
@@ -187,20 +157,14 @@ var app = app || {};
             //t.setDate(1);
             var scopeId=4
             var feed=feeds()[scopeId];
-            model.numSamples=12;//feed.observations.length/2;
             var delta = t.getTime()-Date.parse(feed.stamp);
-            for (i=0;i<12;i++){
-                var v=feed.observations[i];
-                var value1 = kWhPd(v[1]);
-                var x = new Date(Date.parse(v[0]));
-                
-                var value2 = null;
-                if (i+12<feed.observations.length){
-                    value2=kWhPd(feed.observations[i+12][1]);
-                }
-                model.data.push([x,value1,value2]);
+            for (i=24;i>=0;i--){
+              var value = kWhPd(1000);
+              var x = new Date(t-i*30*24*60*60*1000);
+              var row = splitModel(x,value,model.numSensors);
+              model.data.push(row);
             }
-            model.data.reverse();
+            model.numSamples=model.data.length;
             model.colors=model.colorModel(model.numSensors,2/3);
         },
         update:function(model){
@@ -210,15 +174,10 @@ var app = app || {};
 
 
     app.models[0].init(app.models[0]);
-    //console.log(app.models[0]);
     app.models[1].init(app.models[1]);
-    //console.log(app.models[1]);
     app.models[2].init(app.models[2]);
-    //console.log(app.models[2]);
     app.models[3].init(app.models[3]);
-    // console.log(app.models[3]);
     app.models[4].init(app.models[4]);
-    // console.log(app.models[4]);
 
     function kWhPd(watt){
         return watt*24.0/1000.0
