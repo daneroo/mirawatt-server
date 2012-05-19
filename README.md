@@ -1,5 +1,10 @@
 # Mirawatt Server
 
+## Initial deployment to nodejitsu
+When it's up, you can find it [here](http://mw-spec.jit.su)
+
+  jitsu deploy
+
 ## Initial deployment to cloudfoundry
 When it's up, you can find it [here](http://mirawatt.cloudfoundry.com)
 
