@@ -24,7 +24,7 @@ var app = app || {};
         colorModel:hueColorModel,
         timeRange:0,
         init:function(model){
-          var t = quantizeTime( new Date(), 1);
+          var t = quantizeTime( new Date(), 0);
           $.each([5,4,3,2,1,0],function(i,v){
             var value = 1000/1000;
             var x = new Date(t-v*60*1000);
@@ -145,7 +145,7 @@ var app = app || {};
       for (var u=0;u<=upto;u++){
         q[setters[u]](u==4?1:0); // setXXX(0), except setDate(1);
       }
-      console.log(setters[upto],d.toISOString(),'',q.toISOString());
+      // console.log(setters[upto],d.toISOString(),'',q.toISOString());
       return q;
     }
     function kWhPd(watt){
