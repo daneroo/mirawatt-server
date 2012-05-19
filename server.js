@@ -1,5 +1,5 @@
 // Config section
-var port = (process.env.VMC_APP_PORT || 3000);
+var port = (process.env.VMC_APP_PORT || 8080);
 var host = (process.env.VCAP_APP_HOST || '0.0.0.0'|| 'localhost');
 
 var express = require('express');
@@ -17,6 +17,7 @@ var persistentFeeds={};  //by accountId - > array of scopes [0,1,2,3,4] : Live,.
   persistentFeeds[sample.accountId]=sample.feeds; // make sure the samples has all scopes
   
 });
+
 var services = {
     zing : function (n, cb) { // cb(err,result)
       if (n>100){
@@ -24,6 +25,7 @@ var services = {
           cb({code:-1,message:"n is too large"},null);
           return;
       }
+      // console.log('zing',n);
       if (cb) cb(null,n * 100);
     },
     accounts: function(cb){
@@ -117,13 +119,8 @@ var ioOpts= (process.env.VMC_APP_PORT)?{
   'jsonp-polling'
   ]   
 }:{};
+
 dnode(services).listen(server,{ io : ioOpts});
-
-if (!process.env.VMC_APP_PORT) {
-  // also listen to 7070 directly (locally)
-  dnode(services).listen(7070);
-}
-
 
 server.listen(port, host);
 console.log('http://'+host+':'+port+'/');
