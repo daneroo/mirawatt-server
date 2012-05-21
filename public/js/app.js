@@ -66,6 +66,10 @@ function updateFromModel(){
 
 var lastFetch=null; // till we get push from dnode (reset fomr scope change)
 function updateFromFeeds(){
+  if (!app.svc) {
+    // console.log('skip update - no connection');
+    return;
+  }
   // till we get push from dnode,
   // if scope is not Live, punt on update < 5,10 seconds
   if (lastFetch){
@@ -137,24 +141,28 @@ function updateFromFeeds(){
 }
 
 function refreshAccounts(){
-    // this is the dnode fetch - all scopes
-    app.svc.accounts(function(err,accountIds){
-        // console.log('accounts',accountIds);
-        if (app.accountId==null && accountIds && accountIds.length>0){
-            app.accountId=accountIds[0];
-        }
-        if (err) {
-          console.log('dnode err',err);
-          return;
-        }
-        var $feedList = $('.feedpicker ul');
-        $feedList.html(''); // empty the list
-        $.each(accountIds,function(i,accountId){
-            var icon = (app.accountId===accountId)?'check':'grid';
-            $feedList.append('<li data-icon="'+icon+'"><a data-feed="'+accountId+'" href="#">'+accountId+'</a></li>');
-        });
-        $feedList.listview('refresh');        
+  if (!app.svc) {
+    // console.log('skip refreshAccounts - no connection');
+    return;
+  }
+  // this is the dnode fetch - all scopes
+  app.svc.accounts(function(err,accountIds){
+    // console.log('accounts',accountIds);
+    if (app.accountId==null && accountIds && accountIds.length>0){
+      app.accountId=accountIds[0];
+    }
+    if (err) {
+      console.log('dnode err',err);
+      return;
+    }
+    var $feedList = $('.feedpicker ul');
+    $feedList.html(''); // empty the list
+    $.each(accountIds,function(i,accountId){
+      var icon = (app.accountId===accountId)?'check':'grid';
+      $feedList.append('<li data-icon="'+icon+'"><a data-feed="'+accountId+'" href="#">'+accountId+'</a></li>');
     });
+    $feedList.listview('refresh');        
+  });
 }
 // this was for synth demo
 //setInterval(updateFromModel, 1000);
@@ -219,11 +227,18 @@ $(function(){
   //anchorZoomSetup();
   drawGraph();
   
-  DNode.connect({reconnect:3000},function (remote) {
-    app.svc=remote; // global!
-    //refreshData();
-    refreshAccounts();
-  });
+  DNode(function(remote,conn){
+    this.type='viewer';
+    conn.on('ready',function(){
+      console.log('viewer ready',conn.id);
+      app.svc=remote; // global!
+      refreshAccounts();
+    });
+    conn.on('end',function(){
+      app.svc=null; // global!
+      console.log('viewer end',conn.id);
+    });
+  }).connect({reconnect:5000});
 });
 
 function info(msg,clear){

@@ -120,7 +120,34 @@ var ioOpts= (process.env.VMC_APP_PORT)?{
   ]   
 }:{};
 
-dnode(services).listen(server,{ io : ioOpts});
+// dnode(services).listen(server,{ io : ioOpts});
+var clients=[];
+dnode(function(client,conn){
+  console.log('*****new client/conn',conn.id);
+  var service;
+  for (var service in services) {
+    this[service]=services[service];
+  }
+  
+  // expect client.type in [viewer,sensorhub]
+  conn.on('ready', function () {
+    console.log('adding client for conn:',conn.id);
+    console.log('client.type',client.type)
+    clients.push(client);
+    console.log('added a client: '+clients.length);
+    if(0) if (client.type=='sensorhub') setTimeout(function(){
+      console.log('closing sensorhub connection after 10 seconds');
+      conn.end();
+    },10000);
+  });
+  conn.on('end', function () {
+    console.log('removing client for conn:',conn.id);
+    var idx = clients.indexOf(client);
+    if (idx!=-1) clients.splice(idx, 1);
+    // else: should never happen
+    console.log('removed client: '+clients.length);
+  });
+}).listen(server,{ io : ioOpts});
 
 server.listen(port, host);
 console.log('http://'+host+':'+port+'/');
