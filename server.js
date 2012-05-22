@@ -128,6 +128,12 @@ dnode(function(client,conn){
   for (var service in services) {
     this[service]=services[service];
   }
+
+  ['connect','ready','remote','end','error','refused','drop','reconnect'].forEach(function(ev){
+    conn.on(ev,function(){
+      console.log('  --dnode.conn',conn.id,ev,new Date().toISOString());
+    });
+  });
   
   // expect client.type in [viewer,sensorhub]
   conn.on('ready', function () {
