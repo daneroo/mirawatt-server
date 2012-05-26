@@ -44,7 +44,7 @@ var services = {
           dimension = feeds.feeds[0].obs[0].v.length;        
           names=_.map(feeds.feeds, function(feed){ return feed.name; });
         } catch (e){}
-        // console.log('set',stamp,userId,'dim',dimension,names.join(','));
+        console.log('set',stamp,userId,'dim',dimension,names.join(','));
       }
       track(feeds);
       persistentFeeds[userId]=feeds.feeds;
@@ -120,10 +120,12 @@ var ioOpts= (process.env.VMC_APP_PORT)?{
   ]   
 }:{};
 
-// dnode(services).listen(server,{ io : ioOpts});
-var clients=[];
+var clientsByType={
+  sensorhubs:[],
+  viewers:[]
+};
+
 dnode(function(client,conn){
-  console.log('*****new client/conn',conn.id);
   var service;
   for (var service in services) {
     this[service]=services[service];
@@ -131,27 +133,41 @@ dnode(function(client,conn){
 
   ['connect','ready','remote','end','error','refused','drop','reconnect'].forEach(function(ev){
     conn.on(ev,function(){
-      console.log('  --dnode.conn',conn.id,ev,new Date().toISOString());
+      console.log('  --dnode.conn',ev,conn.id,new Date().toISOString());
     });
   });
   
   // expect client.type in [viewer,sensorhub]
   conn.on('ready', function () {
-    console.log('adding client for conn:',conn.id);
-    console.log('client.type',client.type)
-    clients.push(client);
-    console.log('added a client: '+clients.length);
+    
+    console.log('adding client for conn:',conn.id,'type',client.type);
+    if (!clientsByType[client.type]) clientsByType[client.type]=[];
+    
+    clientsByType[client.type].push(client);
+
+    if (client.zong){
+      setTimeout(function(){
+        console.log('about to zong 42');
+        client.zong(42,function(zong){
+          console.log('zong 42 --> ',zong);
+        });
+      },5000)
+    } else {
+      console.log('client has no zong');
+    }
+
     if(0) if (client.type=='sensorhub') setTimeout(function(){
       console.log('closing sensorhub connection after 10 seconds');
       conn.end();
     },10000);
   });
+  
   conn.on('end', function () {
-    console.log('removing client for conn:',conn.id);
-    var idx = clients.indexOf(client);
-    if (idx!=-1) clients.splice(idx, 1);
+    console.log('removing client for conn:',conn.id,'type',client.type);
+    var idx = clientsByType[client.type].indexOf(client);
+    if (idx!=-1) clientsByType[client.type].splice(idx, 1);
     // else: should never happen
-    console.log('removed client: '+clients.length);
+    console.log('removed client, remaining: '+clientsByType[client.type].length);
   });
 }).listen(server,{ io : ioOpts});
 
