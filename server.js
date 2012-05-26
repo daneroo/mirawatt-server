@@ -20,12 +20,12 @@ var persistentFeeds={};  //by accountId - > array of scopes [0,1,2,3,4] : Live,.
 
 var services = {
     zing : function (n, cb) { // cb(err,result)
-      if (n>100){
+      if (n>1000){
           console.log('n is too large');
           cb({code:-1,message:"n is too large"},null);
           return;
       }
-      // console.log('zing',n);
+      console.log('zing',n);
       if (cb) cb(null,n * 100);
     },
     accounts: function(cb){
@@ -121,15 +121,24 @@ var ioOpts= (process.env.VMC_APP_PORT)?{
 }:{};
 
 var clientsByType={
-  sensorhubs:[],
-  viewers:[]
+  sensorhub:[],
+  viewer:[]
 };
 
 dnode(function(client,conn){
+  // attach services from above
   var service;
-  for (var service in services) {
+  for (service in services) {
     this[service]=services[service];
   }
+
+  this.subscribe = function(subscription,cb){
+    // this is for the viewer.
+    client.subscription= subscription;
+    console.log('subscribe',subscription);
+    // callback not used
+    if (cb) cb(null,true);
+  };
 
   ['connect','ready','remote','end','error','refused','drop','reconnect'].forEach(function(ev){
     conn.on(ev,function(){
@@ -141,20 +150,10 @@ dnode(function(client,conn){
   conn.on('ready', function () {
     
     console.log('adding client for conn:',conn.id,'type',client.type);
-    if (!clientsByType[client.type]) clientsByType[client.type]=[];
-    
+    if (!clientsByType[client.type]) clientsByType[client.type]=[];    
     clientsByType[client.type].push(client);
 
-    if (client.zong){
-      setTimeout(function(){
-        console.log('about to zong 42');
-        client.zong(42,function(zong){
-          console.log('zong 42 --> ',zong);
-        });
-      },5000)
-    } else {
-      console.log('client has no zong');
-    }
+    showClients();
 
     if(0) if (client.type=='sensorhub') setTimeout(function(){
       console.log('closing sensorhub connection after 10 seconds');
@@ -167,9 +166,39 @@ dnode(function(client,conn){
     var idx = clientsByType[client.type].indexOf(client);
     if (idx!=-1) clientsByType[client.type].splice(idx, 1);
     // else: should never happen
-    console.log('removed client, remaining: '+clientsByType[client.type].length);
+    showClients();
   });
 }).listen(server,{ io : ioOpts});
+
+function showClients(){
+  Object.keys(clientsByType).forEach(function(type){
+    console.log('  |client['+type+']|=',clientsByType[type].length);
+  });
+
+  var subscriptions = [];
+  
+  var viewers=clientsByType['viewer'];
+  if (viewers.length>0){
+    viewers.forEach(function(vw){
+      console.log(vw.type,vw.subscription);
+      if (vw.subscription){
+        subscriptions.push(vw.subscription);
+      } else {
+        console.log('subscription not set');
+      }
+    });
+  }
+
+  var sensorhubs=clientsByType['sensorhub'];
+  if (sensorhubs.length>0){
+    sensorhubs.forEach(function(sh){
+      console.log(sh.type,sh.accountIds);
+      sh.subscribe(subscriptions);
+    });
+  }
+  
+}
+setInterval(showClients,10000);
 
 server.listen(port, host);
 console.log('http://'+host+':'+port+'/');

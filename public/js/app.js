@@ -214,6 +214,11 @@ $(function(){
   });  
   $('.feedpicker li a').live('click',function(){
     app.accountId=$(this).data('feed');
+    console.log('about to subscribe',app.accountId,app.currentScope);
+    app.svc.subscribe({
+       accountId:app.accountId,
+       scopeId:app.currentScope
+    });
     // console.log($('.feedpicker li'));
     // $('.feedpicker li').attr('data-icon','home');
     $('.feedpicker li span.ui-icon').removeClass('ui-icon-check')
