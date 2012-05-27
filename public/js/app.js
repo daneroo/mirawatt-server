@@ -3,23 +3,56 @@ function hideURLBar(){
   MBP.hideUrlBar();
 }
 
-function updateFromModel(){
-  console.log('updateFromModel')
+// this update the graph from the model, for the app.currentScope
+function updateGraphFromCurrentModel(){
+  console.log('updateGraphFromCurrentModel')
   var model=app.models[app.currentScope];
   var opts =  $.extend({}, { 
-    file: model.data ,
-    colors: model.colors ,
-    stackedGraph: true,
-    includeZero: false
-    },model.options);
-    app.graph.updateOptions( opts );
+      labels:model.labels,
+      file: model.data ,
+      colors: model.colors ,
+      stackedGraph: true,
+      includeZero: false
+  },model.options);
+  app.graph.updateOptions( opts );
+}
+
+// This is a hadler for the incoming feeds.
+// It updates the model, then refreshes the graph
+function updateFromFeeds(feeds){
+  console.log('updateFromFeeds')
+  
+  if (0) { // shuffle and trim
+    function Shuffle(o) {
+      for(var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+      return o;
+    };
+    feeds = Shuffle(feeds);
+    feeds.splice(-3,2);
   }
 
+  $.each(feeds,function(i,feed){
+    if (!feed) {
+      console.log('skipping feed for scopeId',scopeId);
+      return;
+    }
+    
+    app.feed.toModel(feed,function(summary,labels,modelData){
+      var scopeId=feed.scopeId;        
+      $('.scopepicker li[data-scope-id='+scopeId+'] span .metric').text(summary);
+      app.models[scopeId].labels=['Time'].concat(labels);
+      app.models[scopeId].data=modelData;
+    });
+  });
+  
+  updateGraphFromCurrentModel();
+}
+
+var fetchCount=0;
 var lastFetch=null; // till we get push from dnode (reset fomr scope change)
-function updateFromFeeds(){
-  console.log('updateFromFeeds')
+function fetchFeeds(){
   if (!app.svc) {
-    // console.log('skip update - no connection');
+    // console.log('skip update - no connection yet');
     return;
   }
   // till we get push from dnode,
@@ -31,66 +64,28 @@ function updateFromFeeds(){
   }
   lastFetch=+new Date();
 
-  // this is the json fetch - all scopes
-  if(0) jsonRPC(app.endpoint,"get",[app.accountId],function(feeds){
-    console.log('jsonrpc',feeds);
-  });
-  // this is the dnode fetch - all scopes
-  app.svc.get(app.accountId,function(err,feeds){
-    // console.log('dnode',app.accountId,err,feeds);
-    if (err) {
-      console.log('dnode err',err);
-      return;
-    }
-    $.each(feeds,function(scopeId,feed){
-      if (!feed) {
-        console.log('skipping feed for scopeId',scopeId);
+  if ((fetchCount++ % 2)==0){ // fetchFeeds-json
+    console.log('fetchFeeds-json')
+    jsonRPC(app.endpoint,"get",[app.accountId],function(response){
+      if (response.error) {
+        console.log('jsonrpc-error',response.error);
         return;
       }
-      
-      // scale denoms
-      var kw=1000,kwh=1000,kwhpd=1000/24;
-      var graphScale = [kw,kw,kwh,kwhpd,kwhpd][scopeId];
-      var summaryScale = [kw,kw,kwhpd,kwhpd,kwhpd][scopeId];
-      
-      // console.log('handling',scopeId,feed.name,feed.obs.length,'scale',scale,feed.obs[0]);
-      var nudata=[];
-      var avgOrLast=0;
-      $.each(feed.obs,function(i,obs){
-        var stamp = new Date(obs.t);//.toISOString().substring(0,19);
-        var row = [stamp];
-        var sum=0;
-        $.each(obs.v,function(s,v){
-          sum+=v;
-          v=v/graphScale;
-          row.push(v);
-        });
-        avgOrLast+= ((scopeId>0 || i==0)?1:0) * sum/summaryScale;
-        nudata.push(row);
-      });
-      nudata.reverse();
-      
-      if (scopeId>0) avgOrLast/=feed.obs.length;
-      
-      if (scopeId===0) avgOrLast*=1000; // W instead o kW
-      avgOrLast = avgOrLast.toFixed([0,2,2,1,1][scopeId]);
-      // console.log('nudata',nudata);
-      $('.scopepicker li[data-scope-id='+scopeId+'] span .metric').text(avgOrLast);
-      app.models[scopeId].data=nudata;
-      app.models[scopeId].labels=['Time'].concat(feed.sensorId);
+      var feeds = response.result;
+      console.log('json',app.accountId,feeds);
+      updateFromFeeds(feeds);
     });
-    
-    var model=app.models[app.currentScope];
-    var opts =  $.extend({}, { 
-        labels:model.labels,
-        file: model.data ,
-        colors: model.colors ,
-        stackedGraph: true,
-        includeZero: false
-    },model.options);
-    app.graph.updateOptions( opts );
-  });
-  
+  } else { // fetchFeeds-dnode
+    console.log('fetchFeeds-dnode')
+    app.svc.get(app.accountId,function(err,feeds){
+      if (err) {
+        console.log('dnode-error',err);
+        return;
+      }
+      console.log('dnode',app.accountId,err,feeds);
+      updateFromFeeds(feeds);
+    }); 
+  }
 }
 
 function refreshAccounts(){
@@ -117,9 +112,8 @@ function refreshAccounts(){
     $feedList.listview('refresh');        
   });
 }
-// this was for synth demo
-//setInterval(updateFromModel, 1000);
-setInterval(updateFromFeeds, 1000);
+
+setInterval(fetchFeeds, 3000);
 
 var app = app || {};
 app.svc=null;
@@ -149,14 +143,14 @@ $(function(){
           console.log('change scopeId',scopeId);
           app.currentScope=scopeId%app.models.length;
           lastFetch=null; // till we get push from dnode
-          updateFromModel();
+          updateGraphFromCurrentModel();
       }
   });
   $('#dygraph').click(function(){
       app.currentScope=(app.currentScope+1)%app.models.length;
       lastFetch=null; // till we get push from dnode
       console.log('change scope',app.currentScope);
-      updateFromModel();
+      updateGraphFromCurrentModel();
   });
   
   $('.feedpickershow').click(function(){
@@ -182,7 +176,7 @@ $(function(){
   });  
   //anchorZoomSetup();
   app.graph.init(); //  drawGraph();
-  updateFromModel();
+  updateGraphFromCurrentModel();
   
   DNode(function(remote,conn){
     this.type='viewer';
