@@ -1,59 +1,10 @@
 
-
 function hideURLBar(){
   MBP.hideUrlBar();
 }
 
-
-var globalG
-function drawGraph(){
-    var model=app.models[app.currentScope];
-    var options = {
-      title: 'Power',
-      titleHeight: 24,
-      // logscale : false,
-
-      //showRoller: true, // allows controlling roller
-      // rollPeriod: 3, // ok depends on scale
-      // rollPeriod: 2,
-      // errorBars: true, requires sigma column
-      // gridLineColor: '#FF0000',
-      // highlightCircleSize: 10,
-      strokeWidth: 2,
-      axisLabelColor: 'gray',
-      colors:model.colors,
-      
-      // axis:{
-      //   'weight':{axisLabelWidth:20}
-      // },
-      // axisLineColor: 'blue',
-      // drawXGrid: false,
-      // drawYGrid: false,
-      // axisLabelWidth:100, // doesn't seem to do anything
-      yAxisLabelWidth:15,
-      xAxisLabelWidth:55, // default 50 dosn't quite cut it...
-
-      showLabelsOnHighlight:false,
-      // for touch stuff later...
-      //interactionModel: interactionModel
-      // interactionModel: {},
-      //dateWindow: [now-desiredDays*day,now],
-      
-      //stepPlot:true,
-      fillGraph:true,
-      //drawPoints: true,
-      //showRoller: true,
-      //valueRange: [0.0, 1.2],
-      //labels: ['Time', 'Power (avg)']
-      labels: model.labels,
-      stackedGraph: true
-    };
-
-    globalG = new Dygraph(document.getElementById("dygraph"), model.data,options);
-
-}
-
 function updateFromModel(){
+  console.log('updateFromModel')
   var model=app.models[app.currentScope];
   var opts =  $.extend({}, { 
     file: model.data ,
@@ -61,11 +12,12 @@ function updateFromModel(){
     stackedGraph: true,
     includeZero: false
     },model.options);
-    globalG.updateOptions( opts );
+    app.graph.updateOptions( opts );
   }
 
 var lastFetch=null; // till we get push from dnode (reset fomr scope change)
 function updateFromFeeds(){
+  console.log('updateFromFeeds')
   if (!app.svc) {
     // console.log('skip update - no connection');
     return;
@@ -135,7 +87,7 @@ function updateFromFeeds(){
         stackedGraph: true,
         includeZero: false
     },model.options);
-    globalG.updateOptions( opts );
+    app.graph.updateOptions( opts );
   });
   
 }
@@ -185,9 +137,7 @@ $(function(){
   function orientationChange(){
     MBP.viewportmeta.content = "width=device-width, minimum-scale=1.0, maximum-scale=1.0";    
     hideURLBar();
-    if (window.globalG) {
-      globalG.resize();
-    }
+    app.graph.resize();
   }
   $(window).bind('orientationchange', orientationChange);
   orientationChange();
@@ -230,7 +180,8 @@ $(function(){
     $('#home .feedpickerwrapper').toggleClass('showing');
   });  
   //anchorZoomSetup();
-  drawGraph();
+  app.graph.init(); //  drawGraph();
+  updateFromModel();
   
   DNode(function(remote,conn){
     this.type='viewer';
