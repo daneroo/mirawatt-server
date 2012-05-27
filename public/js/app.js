@@ -50,7 +50,8 @@ function updateFromFeeds(){
       
       // scale denoms
       var kw=1000,kwh=1000,kwhpd=1000/24;
-      var scale = [kw,kw,kwhpd,kwhpd,kwhpd][scopeId];
+      var graphScale = [kw,kw,kwh,kwhpd,kwhpd][scopeId];
+      var summaryScale = [kw,kw,kwhpd,kwhpd,kwhpd][scopeId];
       
       // console.log('handling',scopeId,feed.name,feed.obs.length,'scale',scale,feed.obs[0]);
       var nudata=[];
@@ -60,11 +61,11 @@ function updateFromFeeds(){
         var row = [stamp];
         var sum=0;
         $.each(obs.v,function(s,v){
-          v=v/scale;
           sum+=v;
+          v=v/graphScale;
           row.push(v);
         });
-        avgOrLast+= ((scopeId>0 || i==0)?1:0) * sum;
+        avgOrLast+= ((scopeId>0 || i==0)?1:0) * sum/summaryScale;
         nudata.push(row);
       });
       nudata.reverse();

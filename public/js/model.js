@@ -172,7 +172,7 @@ var app = app || {};
     function hueColorModel(numSensors,h){
         var colors=[];
         for (s=0;s<numSensors;s++) colors.push(hsl(h,1,.3+(s%3)/10));
-        for (s=0;s<numSensors;s++) colors.push(hsl(s/numSensors,1,.5));
+        //for (s=0;s<numSensors;s++) colors.push(hsl(s/numSensors,1,.5));
         return colors;
     }
     function rainbowColorModel(numSensors,h){
