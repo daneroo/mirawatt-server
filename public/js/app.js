@@ -50,7 +50,7 @@ function updateFromFeeds(){
       
       // scale denoms
       var kw=1000,kwh=1000,kwhpd=1000/24;
-      var scale = [kw,kw,kwh,kwhpd,kwhpd][scopeId];
+      var scale = [kw,kw,kwhpd,kwhpd,kwhpd][scopeId];
       
       // console.log('handling',scopeId,feed.name,feed.obs.length,'scale',scale,feed.obs[0]);
       var nudata=[];
