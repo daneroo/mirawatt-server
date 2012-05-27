@@ -2,10 +2,11 @@ var app = app || {};
 
 (function(){
   app.feed = {
-    toModel:toModel
+    toModel:toModel, // converts feeds and maps them to model data structures
+    fetchAll:fetchAll //  fetchAll - get feeds (all scopes) - client initiated
   };
-  
-  function toModel(feed,callback){ // cb(summary,labels,data)
+
+  function toModel(feed,callback){ // callback(summary,labels,data)
     if (!feed) {
       console.log('skipping feed (null)',scopeId);
       return;
@@ -47,4 +48,75 @@ var app = app || {};
     var labels = ['Time'].concat(feed.sensorId);
     callback(summary,labels,nudata);
   }
+  
+  // fetchAll - get feeds (all scopes) - client initiated
+  // dependancies:
+  //  uses app.svc, app.currentScope, app.accountId
+  //  will throttle according to app.currentScope, and lastFetch
+  // options : { 
+  //   method: jsonrpc|dnode 
+  // }
+  var lastFetch=null; // till we get push from dnode (reset fomr scope change)
+  function fetchAll(options,callback){ // callback(feeds)
+    if (!app.svc) {
+      // console.log('skip update - no connection yet');
+      return;
+    }
+    
+    options = $.extend({}, { // default options
+        method:'dnode'
+    },options);
+
+    // if scope is not Live, punt on update < 5,10 seconds
+    if (lastFetch){
+      var delay=+new Date()-lastFetch;
+      var minDelayForScope=[900,5000,10000,10000,10000][app.currentScope];
+      if (delay<minDelayForScope) return;
+    }
+    lastFetch=+new Date();
+
+    if (options.method==='jsonrpc'){ // fetchFeeds-json
+      console.log('fetchFeeds-jsonrpc')
+      jsonRPC("get",[app.accountId],function(response){
+        if (response.error) {
+          console.log('jsonrpc-error',response.error);
+          return;
+        }
+        var feeds = response.result;
+        console.log('jsonrpc',app.accountId,feeds);
+        if (callback) callback(feeds);
+      });
+    } else { // fetchFeeds-dnode
+      console.log('fetchFeeds-dnode')
+      app.svc.get(app.accountId,function(err,feeds){
+        if (err) {
+          console.log('dnode-error',err);
+          return;
+        }
+        console.log('dnode',app.accountId,feeds);
+        if (callback) callback(feeds);
+      }); 
+    }
+  }
+
+  // jsonRPC invocation helper
+  var jsonRPCId=42; // jsonRPC invocation counter
+  function jsonRPC(method,paramsArray,successCB){
+    var endpoint='/jsonrpc'; // was a parameter, and defined as app.endpoint
+    var data = { 
+      jsonrpc: "2.0",
+      method: method,
+      params: paramsArray, 
+      id:(++jsonRPCId) 
+    };
+    $.ajax({
+      type: 'POST',
+      dataType: 'json',
+      contentType: 'application/json',
+      url: endpoint,
+      data: JSON.stringify(data),
+      success: successCB
+    });
+  }
+  
 })();

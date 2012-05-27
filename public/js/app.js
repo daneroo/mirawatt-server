@@ -1,4 +1,7 @@
 
+// TODO: include initializr/plugin.js or RIM-boilerplate/common-utils.js - for console|log shim
+// http://paulirish.com/2009/log-a-lightweight-wrapper-for-consolelog/
+
 function hideURLBar(){
   MBP.hideUrlBar();
 }
@@ -33,44 +36,12 @@ function updateFromFeeds(feeds){
   updateGraphFromCurrentModel();
 }
 
-var fetchCount=0;
-var lastFetch=null; // till we get push from dnode (reset fomr scope change)
 function fetchFeeds(){
-  if (!app.svc) {
-    // console.log('skip update - no connection yet');
-    return;
-  }
-  // if scope is not Live, punt on update < 5,10 seconds
-  if (lastFetch){
-    var delay=+new Date()-lastFetch;
-    var minDelayForScope=[900,5000,10000,10000,10000][app.currentScope];
-    if (delay<minDelayForScope) return;
-  }
-  lastFetch=+new Date();
-
-  var useJSON = ( fetchCount++ % 2 )==0; 
-  if (useJSON){ // fetchFeeds-json
-    console.log('fetchFeeds-json')
-    jsonRPC(app.endpoint,"get",[app.accountId],function(response){
-      if (response.error) {
-        console.log('jsonrpc-error',response.error);
-        return;
-      }
-      var feeds = response.result;
-      console.log('json',app.accountId,feeds);
-      updateFromFeeds(feeds);
-    });
-  } else { // fetchFeeds-dnode
-    console.log('fetchFeeds-dnode')
-    app.svc.get(app.accountId,function(err,feeds){
-      if (err) {
-        console.log('dnode-error',err);
-        return;
-      }
-      console.log('dnode',app.accountId,feeds);
-      updateFromFeeds(feeds);
-    }); 
-  }
+  var options = {
+    // method: 'jsonrpc' // 'dnode'
+    method: 'dnode'
+  };
+  app.feed.fetchAll(options,updateFromFeeds);  
 }
 
 function refreshAccounts(){
@@ -105,7 +76,6 @@ app.svc=null;
 app.currentScope=2;
 // app.accountId is set on first refreshAccounts
 app.accountId = null;// 'sample';
-app.endpoint='/jsonrpc';
 
 $(function(){
   hideURLBar();
@@ -158,7 +128,9 @@ $(function(){
     // $('.feedpicker ul').listview('refresh');
     // hide the picker
     $('#home .feedpickerwrapper').toggleClass('showing');
-  });  
+  });
+
+
   //anchorZoomSetup();
   app.graph.init(); //  drawGraph();
   updateGraphFromCurrentModel();
@@ -177,26 +149,3 @@ $(function(){
   }).connect({reconnect:5000});
 });
 
-function info(msg,clear){
-  if(clear) $('#console').html('');
-  $('#console').append('<div>'+new Date().toISOString()+' '+msg+'</div>');
-}
-
-// jsonRPC invocation helper
-var jsonRPCId=42; // jsonRPC invocation counter
-function jsonRPC(endpoint,method,paramsArray,successCB){
-  var data = { 
-    jsonrpc: "2.0",
-    method: method,
-    params: paramsArray, 
-    id:(++jsonRPCId) 
-  };
-  $.ajax({
-    type: 'POST',
-    dataType: 'json',
-    contentType: 'application/json',
-    url: endpoint,
-    data: JSON.stringify(data),
-    success: successCB
-  });
-}
