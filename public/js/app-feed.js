@@ -6,7 +6,11 @@ var app = app || {};
   };
   
   function toModel(feed,callback){ // cb(summary,labels,data)
-    console.log('toModel',feed.scopeId,feed);
+    if (!feed) {
+      console.log('skipping feed (null)',scopeId);
+      return;
+    }    
+    // console.log('toModel',feed.scopeId,feed);
     
     if (!callback) return;
     

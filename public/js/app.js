@@ -17,26 +17,11 @@ function updateGraphFromCurrentModel(){
   app.graph.updateOptions( opts );
 }
 
-// This is a hadler for the incoming feeds.
+// This is a handler for the incoming feeds.
 // It updates the model, then refreshes the graph
 function updateFromFeeds(feeds){
-  console.log('updateFromFeeds')
-  
-  if (0) { // shuffle and trim
-    function Shuffle(o) {
-      for(var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
-      return o;
-    };
-    feeds = Shuffle(feeds);
-    feeds.splice(-3,2);
-  }
-
-  $.each(feeds,function(i,feed){
-    if (!feed) {
-      console.log('skipping feed for scopeId',scopeId);
-      return;
-    }
-    
+  // console.log('updateFromFeeds')  
+  $.each(feeds,function(i,feed){    
     app.feed.toModel(feed,function(summary,labels,modelData){
       var scopeId=feed.scopeId;        
       $('.scopepicker li[data-scope-id='+scopeId+'] span .metric').text(summary);
@@ -55,7 +40,6 @@ function fetchFeeds(){
     // console.log('skip update - no connection yet');
     return;
   }
-  // till we get push from dnode,
   // if scope is not Live, punt on update < 5,10 seconds
   if (lastFetch){
     var delay=+new Date()-lastFetch;
@@ -64,7 +48,8 @@ function fetchFeeds(){
   }
   lastFetch=+new Date();
 
-  if ((fetchCount++ % 2)==0){ // fetchFeeds-json
+  var useJSON = ( fetchCount++ % 2 )==0; 
+  if (useJSON){ // fetchFeeds-json
     console.log('fetchFeeds-json')
     jsonRPC(app.endpoint,"get",[app.accountId],function(response){
       if (response.error) {
@@ -82,7 +67,7 @@ function fetchFeeds(){
         console.log('dnode-error',err);
         return;
       }
-      console.log('dnode',app.accountId,err,feeds);
+      console.log('dnode',app.accountId,feeds);
       updateFromFeeds(feeds);
     }); 
   }
