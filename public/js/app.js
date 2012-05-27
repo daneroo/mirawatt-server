@@ -200,5 +200,3 @@ function jsonRPC(endpoint,method,paramsArray,successCB){
     success: successCB
   });
 }
-// jsonRPC(app.endpoint,"set",["001DC9103902",[ets.body]],function(err,result){console.log(err,result)})
-//jsonRPC(app.endpoint,"set",["001DC9103902",[ets[0].body,null,null,null]],function(err,result){console.log(err,result)})
