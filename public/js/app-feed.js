@@ -20,9 +20,9 @@ var app = app || {};
     var scopeId=feed.scopeId;
     
     // scale denoms
-    var W=1000,kw=1000,kwh=1000,kwhpd=1000/24;
+    var W=1,kw=1000,kwh=1000,kwhpd=1000/24;
     var graphScale = [kw,kw,kwh,kwhpd,kwhpd][scopeId];
-    var summaryScale = [kw,kw,kwhpd,kwhpd,kwhpd][scopeId];
+    var summaryScale = [W,kw,kwhpd,kwhpd,kwhpd][scopeId];
     
     // console.log('handling',scopeId,feed.name,feed.obs.length,'scale',scale,feed.obs[0]);
     var nudata=[];
@@ -36,14 +36,15 @@ var app = app || {};
         v=v/graphScale;
         row.push(v);
       });
-      avgOrLast+= ((scopeId>0 || i==0)?1:0) * sum/summaryScale;
+      if (scopeId>0 || i==0) {
+        avgOrLast+= sum/summaryScale;
+      }
       nudata.push(row);
     });
     nudata.reverse();
     
     if (scopeId>0) avgOrLast/=feed.obs.length;
     
-    if (scopeId===0) avgOrLast*=1000; // W instead o kW
     avgOrLast = avgOrLast.toFixed([0,2,2,1,1][scopeId]);
     
     var summary = avgOrLast;
