@@ -78,24 +78,24 @@ var app = app || {};
     app.feed.lastFetch=+new Date();
 
     if (options.method==='jsonrpc'){ // fetchFeeds-json
-      console.log('fetchFeeds-jsonrpc')
+      // console.log('fetchFeeds-jsonrpc')
       jsonRPC("get",[app.accountId],function(response){
         if (response.error) {
           console.log('jsonrpc-error',response.error);
           return;
         }
         var feeds = response.result;
-        console.log('jsonrpc',app.accountId,feeds);
+        // console.log('jsonrpc',app.accountId,feeds);
         if (callback) callback(feeds);
       });
     } else { // fetchFeeds-dnode
-      console.log('fetchFeeds-dnode')
+      // console.log('fetchFeeds-dnode')
       app.svc.get(app.accountId,function(err,feeds){
         if (err) {
           console.log('dnode-error',err);
           return;
         }
-        console.log('dnode',app.accountId,feeds);
+        // console.log('dnode',app.accountId,feeds);
         if (callback) callback(feeds);
       }); 
     }

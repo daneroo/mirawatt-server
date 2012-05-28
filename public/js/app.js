@@ -18,7 +18,7 @@ function hideURLBar(){
 
 // this update the graph from the model, for the app.currentScope
 function updateGraphFromCurrentModel(){
-  console.log('updateGraphFromCurrentModel')
+  // console.log('updateGraphFromCurrentModel');
   var model=app.models[app.currentScope];
   var opts =  $.extend({}, { 
       labels:model.labels,
