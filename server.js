@@ -1,17 +1,17 @@
 // Config section
 var port = (process.env.VMC_APP_PORT || 8080);
-var host = (process.env.VCAP_APP_HOST || '0.0.0.0'|| 'localhost');
+var host = (process.env.VCAP_APP_HOST || '0.0.0.0' || 'localhost');
 
 var express = require('express');
 var server = express.createServer();
 var dnode = require('dnode');
 var _ = require('underscore');
-server.use(express.static(__dirname+ '/public'));
+server.use(express.static(__dirname + '/public'));
 
-var reflectIncoming=[]; // temporary to debug posts
-var persistentFeeds={};  //by accountId - > array of scopes [0,1,2,3,4] : Live,...
+var reflectIncoming = []; // temporary to debug posts
+var persistentFeeds = {};  //by accountId - > array of scopes [0,1,2,3,4] : Live,...
 
-['spec.sample.json','spec.sampleBy2.json'].forEach(function(sampleDataFileName){
+['spec.sample.json', 'spec.sampleBy2.json'].forEach(function (sampleDataFileName) {
   var sample = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, sampleDataFileName), 'utf8'));
   // console.log(sample);
   persistentFeeds[sample.accountId]=sample.feeds; // make sure the samples has all scopes
