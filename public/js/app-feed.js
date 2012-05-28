@@ -3,7 +3,9 @@ var app = app || {};
 (function(){
   app.feed = {
     toModel:toModel, // converts feeds and maps them to model data structures
-    fetchAll:fetchAll //  fetchAll - get feeds (all scopes) - client initiated
+    lastFetch:null,  // exposed so it can be reset from outside
+    fetchAll:fetchAll, //  fetchAll - get feeds (all scopes) - client initiated
+    getAccounts:getAccounts // get a list of accountIds
   };
 
   function toModel(feed,callback){ // callback(summary,labels,data)
@@ -52,11 +54,10 @@ var app = app || {};
   // fetchAll - get feeds (all scopes) - client initiated
   // dependancies:
   //  uses app.svc, app.currentScope, app.accountId
-  //  will throttle according to app.currentScope, and lastFetch
+  //  will throttle according to app.currentScope, and app.feed.lastFetch
   // options : { 
   //   method: jsonrpc|dnode 
   // }
-  var lastFetch=null; // till we get push from dnode (reset fomr scope change)
   function fetchAll(options,callback){ // callback(feeds)
     if (!app.svc) {
       // console.log('skip update - no connection yet');
@@ -68,12 +69,12 @@ var app = app || {};
     },options);
 
     // if scope is not Live, punt on update < 5,10 seconds
-    if (lastFetch){
-      var delay=+new Date()-lastFetch;
+    if (app.feed.lastFetch){
+      var delay=+new Date()-app.feed.lastFetch;
       var minDelayForScope=[900,5000,10000,10000,10000][app.currentScope];
       if (delay<minDelayForScope) return;
     }
-    lastFetch=+new Date();
+    app.feed.lastFetch=+new Date();
 
     if (options.method==='jsonrpc'){ // fetchFeeds-json
       console.log('fetchFeeds-jsonrpc')
@@ -99,6 +100,22 @@ var app = app || {};
     }
   }
 
+  function getAccounts(callback){ // callback(accountIds)
+    if (!app.svc) {
+      // console.log('skip refreshAccounts - no connection');
+      return;
+    }
+    // this is the dnode fetch - all scopes
+    app.svc.accounts(function(err,accountIds){
+      if (err) {
+        console.log('dnode err',err);
+        return;
+      }
+      if (callback) callback(accountIds);
+    });
+  }
+  
+  
   // jsonRPC invocation helper
   var jsonRPCId=42; // jsonRPC invocation counter
   function jsonRPC(method,paramsArray,successCB){

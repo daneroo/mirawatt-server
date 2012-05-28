@@ -1,4 +1,14 @@
 
+// Application Context
+var app = app || {};
+app.svc=null;
+
+// app.accountId is set on first refreshAccounts, when Dnode client is ready.
+app.accountId = null; // 'sample';
+app.currentScope=0;
+
+setInterval(fetchFeeds, 1000);
+
 // TODO: include initializr/plugin.js or RIM-boilerplate/common-utils.js - for console|log shim
 // http://paulirish.com/2009/log-a-lightweight-wrapper-for-consolelog/
 
@@ -36,6 +46,7 @@ function updateFromFeeds(feeds){
   updateGraphFromCurrentModel();
 }
 
+// This is the client invocation of the feed fetch
 function fetchFeeds(){
   var options = {
     // method: 'jsonrpc' // 'dnode'
@@ -45,38 +56,46 @@ function fetchFeeds(){
 }
 
 function refreshAccounts(){
-  if (!app.svc) {
-    // console.log('skip refreshAccounts - no connection');
-    return;
-  }
-  // this is the dnode fetch - all scopes
-  app.svc.accounts(function(err,accountIds){
+  app.feed.getAccounts(function(accountIds){
     // console.log('accounts',accountIds);
     if (app.accountId==null && accountIds && accountIds.length>0){
-      app.accountId=accountIds[0];
-    }
-    if (err) {
-      console.log('dnode err',err);
-      return;
+      changeAccount(accountIds[0]);
     }
     var $feedList = $('.feedpicker ul');
     $feedList.html(''); // empty the list
     $.each(accountIds,function(i,accountId){
       var icon = (app.accountId===accountId)?'check':'grid';
-      $feedList.append('<li data-icon="'+icon+'"><a data-feed="'+accountId+'" href="#">'+accountId+'</a></li>');
+      $feedList.append('<li data-icon="'+icon+'"><a data-account="'+accountId+'" href="#">'+accountId+'</a></li>');
     });
     $feedList.listview('refresh');        
   });
 }
 
-setInterval(fetchFeeds, 3000);
+function changeAccount(accountId){
+  console.log('changeAccount - clear Graphs?');
+  // TODO:  reset the graphs.
 
-var app = app || {};
-app.svc=null;
-app.currentScope=2;
-// app.accountId is set on first refreshAccounts
-app.accountId = null;// 'sample';
+  app.accountId = accountId;
 
+  app.feed.lastFetch=null; // till we get push from dnode
+  fetchFeeds();
+
+  console.log('about to subscribe',app.accountId,app.currentScope);
+  app.svc.subscribe({
+     accountId:app.accountId,
+     scopeId:app.currentScope
+  });
+  
+}
+
+function changeScope(scopeId){
+  console.log('change scopeId',scopeId);
+  app.currentScope=scopeId%app.models.length;
+  app.feed.lastFetch=null; // till we get push from dnode
+  updateGraphFromCurrentModel();
+}
+
+// Application initialisation and bindings
 $(function(){
   hideURLBar();
   $('html').bind('touchmove',function(e){
@@ -95,17 +114,12 @@ $(function(){
   $('#home ul.scopepicker li').click(function(){
       var scopeId = $(this).jqmData('scope-id');
       if (typeof scopeId !='undefined'){
-          console.log('change scopeId',scopeId);
-          app.currentScope=scopeId%app.models.length;
-          lastFetch=null; // till we get push from dnode
-          updateGraphFromCurrentModel();
+        changeScope(scopeId);
       }
   });
   $('#dygraph').click(function(){
-      app.currentScope=(app.currentScope+1)%app.models.length;
-      lastFetch=null; // till we get push from dnode
-      console.log('change scope',app.currentScope);
-      updateGraphFromCurrentModel();
+      var scopeId = app.currentScope+1; // will be modulo'd in changeScope
+      changeScope(scopeId);
   });
   
   $('.feedpickershow').click(function(){
@@ -113,12 +127,8 @@ $(function(){
     $('#home .feedpickerwrapper').toggleClass('showing');
   });  
   $('.feedpicker li a').live('click',function(){
-    app.accountId=$(this).data('feed');
-    console.log('about to subscribe',app.accountId,app.currentScope);
-    app.svc.subscribe({
-       accountId:app.accountId,
-       scopeId:app.currentScope
-    });
+    var accountId = $(this).data('account');
+    changeAccount(accountId);
     // console.log($('.feedpicker li'));
     // $('.feedpicker li').attr('data-icon','home');
     $('.feedpicker li span.ui-icon').removeClass('ui-icon-check')
