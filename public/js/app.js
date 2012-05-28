@@ -5,9 +5,9 @@ app.svc=null;
 
 // app.accountId is set on first refreshAccounts, when Dnode client is ready.
 app.accountId = null; // 'sample';
-app.currentScope=0;
+app.currentScope=2;
 
-setInterval(fetchFeeds, 1000);
+setInterval(fetchFeeds, 3000);
 
 // TODO: include initializr/plugin.js or RIM-boilerplate/common-utils.js - for console|log shim
 // http://paulirish.com/2009/log-a-lightweight-wrapper-for-consolelog/
