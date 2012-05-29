@@ -10,12 +10,49 @@ server.use(express.static(__dirname + '/public'));
 
 var reflectIncoming = []; // temporary to debug posts
 var persistentFeeds = {};  //by accountId - > array of scopes [0,1,2,3,4] : Live,...
+// these are dnode client(remotes) by client.type
+var clientsByType = {
+  sensorhub: [],
+  viewer: []
+};
+
+// all persisting passes through this function so we can propagate to subscribers
+function persistFeed(accountId, feeds) {
+    var maxScopeId=4;
+
+    // setup the slots
+    persistentFeeds[accountId]=persistentFeeds[accountId] || new Array(maxScopeId+1);
+    
+    var modifiedScopes = [];
+    if (Array.isArray(feeds)){
+      feeds.forEach(function(feed,i){
+        if (feed.scopeId!==undefined) {
+          var scopeId = Number(feed.scopeId);
+          // guard against NaN or out of scopeId range
+          if (scopeId>=0 && scopeId<=maxScopeId){
+            modifiedScopes.push(scopeId);
+            persistentFeeds[accountId][scopeId]=feed;
+          }
+        }
+      });
+    }
+    // TODO: only broadcast the changes scopes.
+    console.log('push updates',accountId,modifiedScopes);
+    broadcastUpdates(accountId,modifiedScopes);
+}
+
+function broadcastUpdates(accountId,modifiedScopes) {
+    clientsByType.viewer.forEach(function(client){
+      console.log('checking',client.subscription,'for',accountId,modifiedScopes);
+        if (client.subscription){
+        }
+    });
+}
 
 ['spec.sample.json', 'spec.sampleBy2.json'].forEach(function (sampleDataFileName) {
   var sample = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, sampleDataFileName), 'utf8'));
   // console.log(sample);
-  persistentFeeds[sample.accountId]=sample.feeds; // make sure the samples has all scopes
-  
+  persistFeed(sample.accountId, sample.feeds); // make sure the samples has all scopes
 });
 
 var services = {
@@ -29,11 +66,13 @@ var services = {
       if (cb) cb(null,n * 100);
     },
     accounts: function(cb){
+        // TODO, add accountIds from sensorhubs, even without pushed data !?
         var sortedAccounts = Object.keys(persistentFeeds);
         sortedAccounts.sort();
         if (cb) cb(null,sortedAccounts);
     },
-    set: function(userId,feeds,cb){
+    // TODO change signature to remove accountId (included in feeds)
+    set: function(accountId,feeds,cb){
       // validate
       function track(feeds){
         var dimension=0;
@@ -44,10 +83,10 @@ var services = {
           dimension = feeds.feeds[0].obs[0].v.length;        
           names=_.map(feeds.feeds, function(feed){ return feed.name; });
         } catch (e){}
-        console.log('set',stamp,userId,'dim',dimension,names.join(','));
+        console.log('set',stamp,accountId,'dim',dimension,names.join(','));
       }
       track(feeds);
-      persistentFeeds[userId]=feeds.feeds;
+      persistFeed(accountId,feeds.feeds)
       if (cb) cb(null,true);
     },
     get:function(userId,cb){
@@ -70,6 +109,7 @@ server.get('/incoming', function(req, res){
   ].join('\n'));
 });
 
+// TODO; remove /:id from signature, included in body:  is this REST ok ?
 // add the bodyparser only for this route.
 server.post('/incoming/:id',express.bodyParser(), function(req, res){
   // console.log(req);
@@ -86,22 +126,9 @@ server.post('/incoming/:id',express.bodyParser(), function(req, res){
   var desiredLength=20;
   reflectIncoming=reflectIncoming.slice(0,desiredLength);
   
-  var maxScopeId=4;
-  // should validate 
   var accountId=req.body.accountId; // || param ? || query
   var feeds = req.body.feeds;
-  if (Array.isArray(feeds)){
-    feeds.forEach(function(feed,i){
-      if (feed.scopeId!==undefined) {
-        persistentFeeds[accountId]=persistentFeeds[accountId] || new Array(maxScopeId+1);
-        var scopeId = Number(feed.scopeId);
-        // guard against NaN or out of scopeId range
-        if (scopeId>=0 && scopeId<=maxScopeId){
-          persistentFeeds[accountId][scopeId]=feed;
-        }
-      }
-    });
-  }
+  persistFeed(accountId,feeds);
 });
 
 jsonrpc_services = require('connect-jsonrpc')(services);
@@ -120,10 +147,6 @@ var ioOpts= (process.env.VMC_APP_PORT)?{
   ]   
 }:{};
 
-var clientsByType={
-  sensorhub:[],
-  viewer:[]
-};
 
 dnode(function(client,conn){
   // attach services from above
@@ -178,16 +201,14 @@ function showClients(){
   var subscriptions = [];
   
   var viewers=clientsByType['viewer'];
-  if (viewers.length>0){
-    viewers.forEach(function(vw){
-      console.log(vw.type,vw.subscription);
-      if (vw.subscription){
-        subscriptions.push(vw.subscription);
-      } else {
-        console.log('subscription not set');
-      }
-    });
-  }
+  viewers.forEach(function(viewer){
+    console.log(viewer.type,viewer.subscription);
+    if (viewer.subscription){
+      subscriptions.push(viewer.subscription);
+    } else {
+      console.log('subscription not set');
+    }
+  });
 
   var sensorhubs=clientsByType['sensorhub'];
   if (sensorhubs.length>0){
