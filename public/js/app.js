@@ -7,9 +7,9 @@ app.svc=null;
 app.accountId = null; // 'sample';
 app.currentScope=2;
 
-setInterval(fetchFeeds, 3000);
+// setInterval(fetchFeeds, 3000);
 
-// TODO: include initializr/plugin.js or RIM-boilerplate/common-utils.js - for console|log shim
+// TODO: include initializr/plugin.js or RIM-boilerplate/common-utils.js - for console.log shim
 // http://paulirish.com/2009/log-a-lightweight-wrapper-for-consolelog/
 
 function hideURLBar(){
@@ -77,9 +77,11 @@ function changeAccount(accountId){
 
   app.accountId = accountId;
 
+  // this part is for fetch
   app.feed.lastFetch=null; // till we get push from dnode
   fetchFeeds();
 
+  // this is for dnode/subscription
   console.log('about to subscribe',app.accountId,app.currentScope);
   app.svc.subscribe({
      accountId:app.accountId,
@@ -91,8 +93,18 @@ function changeAccount(accountId){
 function changeScope(scopeId){
   console.log('change scopeId',scopeId);
   app.currentScope=scopeId%app.models.length;
+
+  // this part is for fetch
   app.feed.lastFetch=null; // till we get push from dnode
   updateGraphFromCurrentModel();
+
+  // this is for dnode/subscription
+  console.log('about to subscribe',app.accountId,app.currentScope);
+  app.svc.subscribe({
+     accountId:app.accountId,
+     scopeId:app.currentScope
+  });
+
 }
 
 // Application initialisation and bindings
@@ -147,10 +159,18 @@ $(function(){
   
   DNode(function(remote,conn){
     this.type='viewer';
+    this.set = function(accountId,feeds,cb){
+      console.log('set',accountId,feeds);
+      if (cb) cb(null,'ok');
+      
+      // TODO 
+      updateFromFeeds(feeds)
+    }
     conn.on('ready',function(){
       console.log('viewer ready',conn.id);
       app.svc=remote; // global!
-      refreshAccounts();
+      // TODO subscribe is account/scope available
+      refreshAccounts();      
     });
     conn.on('end',function(){
       app.svc=null; // global!

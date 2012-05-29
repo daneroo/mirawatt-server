@@ -36,17 +36,22 @@ function persistFeed(accountId, feeds) {
         }
       });
     }
-    // TODO: only broadcast the changes scopes.
-    console.log('push updates',accountId,modifiedScopes);
+    // console.log('push updates',accountId,modifiedScopes);
     broadcastUpdates(accountId,modifiedScopes);
 }
 
 function broadcastUpdates(accountId,modifiedScopes) {
-    clientsByType.viewer.forEach(function(client){
-      console.log('checking',client.subscription,'for',accountId,modifiedScopes);
-        if (client.subscription){
-        }
-    });
+  clientsByType.viewer.forEach(function(client){
+    // TODO check client has .set method - for safety
+    var sub = client.subscription;
+    if (sub && sub.accountId===accountId){
+      // TODO this should be alookup
+      if (modifiedScopes.indexOf(sub.scopeId)>=0) {
+        console.log('pushing',sub /*,' in ',accountId,modifiedScopes*/);        
+        client.set(accountId,[persistentFeeds[accountId][sub.scopeId]]);
+      }
+    }
+  });
 }
 
 ['spec.sample.json', 'spec.sampleBy2.json'].forEach(function (sampleDataFileName) {
