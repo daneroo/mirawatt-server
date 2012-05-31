@@ -22,6 +22,17 @@ function persistFeed(accountId, feeds) {
 
     // setup the slots
     persistentFeeds[accountId]=persistentFeeds[accountId] || new Array(maxScopeId+1);
+
+    function track(feeds){
+      var dimension=0; var names=[]; var stamp='--';
+      try {
+        stamp=feeds[0].obs[0].t;
+        dimension = feeds[0].obs[0].v.length;        
+        names=_.map(feeds, function(feed){ return feed.name; }).join(',');
+      } catch (e){}
+      console.log(stamp,'received','|'+accountId+'|=',dimension,names);
+    }
+    track(feeds);
     
     var modifiedScopes = [];
     if (Array.isArray(feeds)){
@@ -42,12 +53,15 @@ function persistFeed(accountId, feeds) {
 
 function broadcastUpdates(accountId,modifiedScopes) {
   clientsByType.viewer.forEach(function(client){
-    // TODO check client has .set method - for safety
+    if (!client.set){
+      console.log('client viewer has no set method');
+      return;
+    }
     var sub = client.subscription;
     if (sub && sub.accountId===accountId){
       // TODO this should be alookup
       if (modifiedScopes.indexOf(sub.scopeId)>=0) {
-        console.log('pushing',sub /*,' in ',accountId,modifiedScopes*/);        
+        // console.log('pushing',sub /*,' in ',accountId,modifiedScopes*/);        
         client.set(accountId,[persistentFeeds[accountId][sub.scopeId]]);
       }
     }
@@ -79,18 +93,6 @@ var services = {
     // TODO change signature to remove accountId (included in feeds)
     set: function(accountId,feeds,cb){
       // validate
-      function track(feeds){
-        var dimension=0;
-        var names=[];
-        var stamp='--';
-        try {
-          stamp=feeds.feeds[0].obs[0].t;
-          dimension = feeds.feeds[0].obs[0].v.length;        
-          names=_.map(feeds.feeds, function(feed){ return feed.name; });
-        } catch (e){}
-        console.log('set',stamp,accountId,'dim',dimension,names.join(','));
-      }
-      track(feeds);
       persistFeed(accountId,feeds.feeds)
       if (cb) cb(null,true);
     },
@@ -166,6 +168,8 @@ dnode(function(client,conn){
     console.log('subscribe',subscription);
     // callback not used
     if (cb) cb(null,true);
+    // rebalance sensorhub subscriptions
+    dispatchSensorSubscriptions();
   };
 
   ['connect','ready','remote','end','error','refused','drop','reconnect'].forEach(function(ev){
@@ -181,12 +185,8 @@ dnode(function(client,conn){
     if (!clientsByType[client.type]) clientsByType[client.type]=[];    
     clientsByType[client.type].push(client);
 
-    showClients();
+    dispatchSensorSubscriptions();
 
-    if(0) if (client.type=='sensorhub') setTimeout(function(){
-      console.log('closing sensorhub connection after 10 seconds');
-      conn.end();
-    },10000);
   });
   
   conn.on('end', function () {
@@ -194,20 +194,21 @@ dnode(function(client,conn){
     var idx = clientsByType[client.type].indexOf(client);
     if (idx!=-1) clientsByType[client.type].splice(idx, 1);
     // else: should never happen
-    showClients();
+    dispatchSensorSubscriptions();
   });
 }).listen(server,{ io : ioOpts});
 
-function showClients(){
+
+function dispatchSensorSubscriptions(){
   Object.keys(clientsByType).forEach(function(type){
     console.log('  |client['+type+']|=',clientsByType[type].length);
   });
 
   var subscriptions = [];
   
-  var viewers=clientsByType['viewer'];
+  var viewers=clientsByType['viewer']||[];
   viewers.forEach(function(viewer){
-    console.log(viewer.type,viewer.subscription);
+    console.log(viewer.type,'sub',viewer.subscription);
     if (viewer.subscription){
       subscriptions.push(viewer.subscription);
     } else {
@@ -215,16 +216,14 @@ function showClients(){
     }
   });
 
-  var sensorhubs=clientsByType['sensorhub'];
-  if (sensorhubs.length>0){
-    sensorhubs.forEach(function(sh){
-      console.log(sh.type,sh.accountIds);
-      sh.subscribe(subscriptions);
-    });
-  }
-  
+  var sensorhubs=clientsByType['sensorhub']||[];
+  sensorhubs.forEach(function(sensorhub){
+    console.log(sensorhub.type,sensorhub.accountIds);
+    sensorhub.subscribe(subscriptions);
+  });
+  console.log('----------------');
 }
-setInterval(showClients,10000);
+setInterval(dispatchSensorSubscriptions,10000);
 
 server.listen(port, host);
 console.log('http://'+host+':'+port+'/');
