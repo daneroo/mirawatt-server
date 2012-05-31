@@ -20,6 +20,15 @@ function hideURLBar(){
 function updateGraphFromCurrentModel(){
   // console.log('updateGraphFromCurrentModel');
   var model=app.models[app.currentScope];
+  // latency
+  if (app.currentScope===0){
+    var latency= new Date()-model.data[model.data.length-1][0];
+    latency=(latency/1000).toFixed(2);
+    $('#home .latency').text(latency+'s');
+  } else {
+    $('#home .latency').text('');
+  }
+  
   var opts =  $.extend({}, { 
       labels:model.labels,
       file: model.data ,
@@ -33,10 +42,13 @@ function updateGraphFromCurrentModel(){
 // This is a handler for the incoming feeds.
 // It updates the model, then refreshes the graph
 function updateFromFeeds(feeds){
-  // console.log('updateFromFeeds')  
+  // console.log('updateFromFeeds');
+  if (!feeds) return;
+  
   $.each(feeds,function(i,feed){    
     app.feed.toModel(feed,function(summary,labels,modelData){
-      var scopeId=feed.scopeId;        
+      var scopeId=feed.scopeId;
+      // check-display latency
       $('.scopepicker li[data-scope-id='+scopeId+'] span .metric').text(summary);
       app.models[scopeId].labels=['Time'].concat(labels);
       app.models[scopeId].data=modelData;
@@ -160,16 +172,21 @@ $(function(){
   DNode(function(remote,conn){
     this.type='viewer';
     this.set = function(accountId,feeds,cb){
-      console.log('set',accountId,feeds);
+      // console.log('set',accountId,feeds);
       if (cb) cb(null,'ok');
       
       // TODO 
       updateFromFeeds(feeds)
     }
     conn.on('ready',function(){
-      console.log('viewer ready',conn.id);
+      console.log('viewer ready',conn.id,app.accountId,app.currentScope);
       app.svc=remote; // global!
-      // TODO subscribe is account/scope available
+      
+      // if we already have a selected accountId on connection, subscribe to it
+      // this happens on reconnect (server restart, for example)
+      if (app.accountId){ 
+        changeAccount(app.accountId);
+      }
       refreshAccounts();      
     });
     conn.on('end',function(){

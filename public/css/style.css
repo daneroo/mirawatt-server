@@ -58,6 +58,14 @@ html, body {
   text-align:left;
 }
 
+#home .latency {
+  position: absolute;
+  top:0px;
+  right:0px;
+  margin:3px;
+  font-size:80%;
+  color:#777;
+}
 
 #home .feedpickerwrapper {
   -webkit-border-top-right-radius: .6em;
