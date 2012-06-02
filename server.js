@@ -162,6 +162,7 @@ dnode(function(client,conn){
     this[service]=services[service];
   }
 
+  // this is exposed for viewers
   this.subscribe = function(subscription,cb){
     // this is for the viewer.
     client.subscription= subscription;
@@ -172,7 +173,8 @@ dnode(function(client,conn){
     dispatchSensorSubscriptions();
   };
 
-  ['connect','ready','remote','end','error','refused','drop','reconnect'].forEach(function(ev){
+  // debug connection events
+  if(0)['connect','ready','remote','end','error','refused','drop','reconnect'].forEach(function(ev){
     conn.on(ev,function(){
       console.log('  --dnode.conn',ev,conn.id,new Date().toISOString());
     });
@@ -186,7 +188,6 @@ dnode(function(client,conn){
     clientsByType[client.type].push(client);
 
     dispatchSensorSubscriptions();
-
   });
   
   conn.on('end', function () {
@@ -194,13 +195,24 @@ dnode(function(client,conn){
     var idx = clientsByType[client.type].indexOf(client);
     if (idx!=-1) clientsByType[client.type].splice(idx, 1);
     // else: should never happen
+    
     dispatchSensorSubscriptions();
   });
 }).listen(server,{ io : ioOpts});
 
+/* this seems to be necessary to keep the connection alive to the sensorhubs... */
+setInterval(keepAlive,10000);
+function keepAlive(){
+  var sensorhubs=clientsByType['sensorhub']||[];
+  sensorhubs.forEach(function(sensorhub){
+    sensorhub.keepAlive(function(err,keepAliveCount){
+      // if (keepAliveCount%3==0) console.log('keepAlive',sensorhub.type,keepAliveCount);
+    });
+  });
+}
 
 function dispatchSensorSubscriptions(){
-  Object.keys(clientsByType).forEach(function(type){
+  if (0) Object.keys(clientsByType).forEach(function(type){
     console.log('  |client['+type+']|=',clientsByType[type].length);
   });
 
@@ -208,22 +220,20 @@ function dispatchSensorSubscriptions(){
   
   var viewers=clientsByType['viewer']||[];
   viewers.forEach(function(viewer){
-    console.log(viewer.type,'sub',viewer.subscription);
+    // console.log(viewer.type,'subscription',viewer.subscription);
     if (viewer.subscription){
       subscriptions.push(viewer.subscription);
     } else {
-      console.log('subscription not set');
+      // console.log('subscription not set');
     }
   });
 
   var sensorhubs=clientsByType['sensorhub']||[];
   sensorhubs.forEach(function(sensorhub){
-    console.log(sensorhub.type,sensorhub.accountIds);
+    // console.log(sensorhub.type,sensorhub.accountIds);
     sensorhub.subscribe(subscriptions);
   });
-  console.log('----------------');
 }
-setInterval(dispatchSensorSubscriptions,10000);
 
 server.listen(port, host);
 console.log('http://'+host+':'+port+'/');
