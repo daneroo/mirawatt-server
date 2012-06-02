@@ -7,6 +7,7 @@ When it's up, you can find it [here](http://mw-spec.jit.su)
 
 ## Initial deployment to cloudfoundry
 When it's up, you can find it [here](http://mirawatt.cloudfoundry.com)
+ - or - [here (mw-spec)](http://mw-spec.cloudfoundry.com)
 
     # if not yet created... (add mongo later)
     vmc push mirawatt
