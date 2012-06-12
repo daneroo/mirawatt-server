@@ -5,6 +5,8 @@ When it's up, you can find it [here](http://mw-spec.jit.su)
 
   jitsu deploy
 
+To use custom domains with nodejitsu see [http://dns.jit.su/](http://dns.jit.su/)
+
 ## Initial deployment to cloudfoundry
 When it's up, you can find it [here](http://mirawatt.cloudfoundry.com)
  - or - [here (mw-spec)](http://mw-spec.cloudfoundry.com)
