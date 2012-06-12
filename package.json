@@ -1,6 +1,6 @@
 {
   "name": "mirawatt-server",
-  "version": "0.0.1-5",
+  "version": "0.0.1-9",
   "dependencies": {
     "express": "2.5.x",
     "connect-jsonrpc": "0.0.x",
@@ -10,6 +10,9 @@
     "underscore.string": "2.0.x"
   },
   "subdomain": "mw-spec",
+  "domains": [
+    "mw-spec.mirawatt.com"
+  ],
   "analyze": true,
   "scripts": {
     "start": "server.js"
