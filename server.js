@@ -10,6 +10,7 @@ server.use(express.static(__dirname + '/public'));
 
 var reflectIncoming = []; // temporary to debug posts
 var persistentFeeds = {};  //by accountId - > array of scopes [0,1,2,3,4] : Live,...
+
 // these are dnode client(remotes) by client.type
 var clientsByType = {
   sensorhub: [],
@@ -212,27 +213,40 @@ function keepAlive(){
 }
 
 function dispatchSensorSubscriptions(){
-  if (0) Object.keys(clientsByType).forEach(function(type){
-    console.log('  |client['+type+']|=',clientsByType[type].length);
-  });
-
-  var subscriptions = [];
-  
+  var uniqueSubscriptions = {}; // {account:[0,0,0,0,0], scopearray
   var viewers=clientsByType['viewer']||[];
   viewers.forEach(function(viewer){
     // console.log(viewer.type,'subscription',viewer.subscription);
     if (viewer.subscription){
-      subscriptions.push(viewer.subscription);
+      var accountId=viewer.subscription.accountId;
+      uniqueSubscriptions[accountId]=uniqueSubscriptions[accountId]||[0,0,0,0,0];      
+      var scopeId=viewer.subscription.scopeId;
+      uniqueSubscriptions[accountId][scopeId]++;;
     } else {
       // console.log('subscription not set');
     }
   });
 
+  // dispatch greedily (and once only) to the sensorhubs.
   var sensorhubs=clientsByType['sensorhub']||[];
   sensorhubs.forEach(function(sensorhub){
-    // console.log(sensorhub.type,sensorhub.accountIds);
-    sensorhub.subscribe(subscriptions);
+    // console.log(sensorhub.type,sensorhub.accountIds);    
+    // dispatch all that I can to this sensorhub
+    var subs=[];
+    sensorhub.accountIds.forEach(function(accountId){
+      if (!uniqueSubscriptions[accountId]) return;
+      uniqueSubscriptions[accountId].forEach(function(count,scopeId){
+        if (count){
+          subs.push({ accountId: accountId, scopeId: scopeId });
+        }
+      });
+      // mark this account as dispatched
+      delete uniqueSubscriptions[accountId];
+    });
+    // console.log('dispatch unit',subs);
+    sensorhub.subscribe(subs);    
   });
+  console.log('undispatched subscriptions',uniqueSubscriptions);
 }
 
 server.listen(port, host);
