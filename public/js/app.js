@@ -39,7 +39,7 @@ function updateGraphFromCurrentModel(){
   app.graph.updateOptions( opts );
 
   // NON-Standard: Invoke updateRaw
-  updateRaw(feed);
+  updateRaw();
 }
 
 // updateRaw is used on the #raw page to show latest incoming values of live scope
