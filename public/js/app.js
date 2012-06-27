@@ -60,7 +60,7 @@ function updateRaw(){
     // data for Live scope is in kw, we put back in Watts
     // but don;t touch the first value, it is the time stamp
     if (i>0) data = Math.round(data*1000);
-    $raw_data.append($('<tr><td>'+label+'</td><td>'+data+'</td></tr>'));
+    $raw_data.append($('<tr><td>'+label+'</td><th>'+data+' W</th></tr>'));
   });
 }
 

@@ -100,3 +100,12 @@ html, body {
 #home .feedpickerwrapper.showing .feedpicker {
   display:block;
 }
+
+/*raw page formatting*/
+#raw td {
+  padding-right: 5px;
+}
+
+#raw th {
+  text-align: left;
+}
