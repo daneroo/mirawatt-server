@@ -37,6 +37,31 @@ function updateGraphFromCurrentModel(){
       includeZero: false
   },model.options);
   app.graph.updateOptions( opts );
+
+  // NON-Standard: Invoke updateRaw
+  updateRaw(feed);
+}
+
+// updateRaw is used on the #raw page to show latest incoming values of live scope
+function updateRaw(){
+  $('#raw .raw_account').text(app.accountId);
+  if (!app.models || app.models.length<1) return;
+
+  var live = app.models[0];
+  var lastdata = live.data[live.data.length-1];
+  // empty the table
+  $raw_data = $('#raw .raw_data');
+  $raw_data.html('');
+  $.each(lastdata,function(i,data){
+    var label = '';
+    if (i<live.labels.length){
+      label = live.labels[i];
+    }
+    // data for Live scope is in kw, we put back in Watts
+    // but don;t touch the first value, it is the time stamp
+    if (i>0) data = Math.round(data*1000);
+    $raw_data.append($('<tr><td>'+label+'</td><td>'+data+'</td></tr>'));
+  });
 }
 
 // This is a handler for the incoming feeds.
@@ -50,7 +75,7 @@ function updateFromFeeds(feeds){
       var scopeId=feed.scopeId;
       // check-display latency
       $('.scopepicker li[data-scope-id='+scopeId+'] span .metric').text(summary);
-      app.models[scopeId].labels=['Time'].concat(labels);
+      app.models[scopeId].labels=labels;
       app.models[scopeId].data=modelData;
     });
   });
